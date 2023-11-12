@@ -32,29 +32,6 @@ class TransformerConfig:
     def max_tokens(self):
         return self.tokens_per_block * self.max_blocks
 
-
-class Transformer(nn.Module):
-    def __init__(self, config: TransformerConfig) -> None:
-        super().__init__()
-        self.config = config
-        self.drop = nn.Dropout(config.embed_pdrop)
-        self.blocks = nn.ModuleList([Block(config) for _ in range(config.num_layers)])
-        self.ln_f = nn.LayerNorm(config.embed_dim)
-
-    def generate_empty_keys_values(self, n: int, max_tokens: int) -> KeysValues:
-        device = self.ln_f.weight.device  # Assumption that all submodules are on the same device
-        return KeysValues(n, self.config.num_heads, max_tokens, self.config.embed_dim, self.config.num_layers, device)
-
-    def forward(self, sequences: torch.Tensor, past_keys_values: Optional[KeysValues] = None) -> torch.Tensor:
-        assert past_keys_values is None or len(past_keys_values) == len(self.blocks)
-        x = self.drop(sequences)
-        for i, block in enumerate(self.blocks):
-            x = block(x, None if past_keys_values is None else past_keys_values[i])
-
-        x = self.ln_f(x)
-        return x
-
-
 class Block(nn.Module):
     def __init__(self, config: TransformerConfig) -> None:
         super().__init__()
@@ -118,3 +95,24 @@ class SelfAttention(nn.Module):
         y = self.resid_drop(self.proj(y))
 
         return y
+
+class Transformer(nn.Module):
+    def __init__(self, config: TransformerConfig) -> None:
+        super().__init__()
+        self.config = config
+        self.drop = nn.Dropout(config.embed_pdrop)
+        self.blocks = nn.ModuleList([Block(config) for _ in range(config.num_layers)])
+        self.ln_f = nn.LayerNorm(config.embed_dim)
+
+    def generate_empty_keys_values(self, n: int, max_tokens: int) -> KeysValues:
+        device = self.ln_f.weight.device  # Assumption that all submodules are on the same device
+        return KeysValues(n, self.config.num_heads, max_tokens, self.config.embed_dim, self.config.num_layers, device)
+
+    def forward(self, sequences: torch.Tensor, past_keys_values: Optional[KeysValues] = None) -> torch.Tensor:
+        assert past_keys_values is None or len(past_keys_values) == len(self.blocks)
+        x = self.drop(sequences)
+        for i, block in enumerate(self.blocks):
+            x = block(x, None if past_keys_values is None else past_keys_values[i])
+
+        x = self.ln_f(x)
+        return x

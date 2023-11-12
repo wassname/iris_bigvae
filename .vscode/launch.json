@@ -16,9 +16,9 @@
             "args": [
                 "env.train.id=BreakoutNoFrameskip-v4",
                 // # make it start early
-                "trainer.training.tokenizer.start_after_epochs=1",
-                "trainer.training.world_model.start_after_epochs=2",
-                "trainer.training.actor_critic.start_after_epochs=3",
+                "training.tokenizer.start_after_epochs=1",
+                "training.world_model.start_after_epochs=2",
+                "training.actor_critic.start_after_epochs=3",
             ]
         }
     ]
