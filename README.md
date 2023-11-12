@@ -1,3 +1,10 @@
+
+Fork of IRIS, where instead of a new transformer as a world model we use an adapter on a pretrained LLM. The hypothesis is that the pretrained LLM will help the world model learn faster and in a more data effecient manner.
+
+See also:
+- [AdaVAE](https://github.com/ImKeTT/AdaVAE)
+- [bigvae](https://github.com/JD-P/minihf/blob/adavae-moe/vae_infer.py)
+
 # Transformers are Sample-Efficient World Models (IRIS)
 
 [Transformers are Sample-Efficient World Models](https://openreview.net/forum?id=vhFu1Acb0xb) <br>

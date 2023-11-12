@@ -10,7 +10,8 @@ from dataset import Batch
 from .kv_caching import KeysValues
 from .slicer import Embedder, Head
 from .tokenizer import Tokenizer
-from .transformer import Transformer, TransformerConfig
+# from .transformer import Transformer, TransformerConfig
+from .bigvae import BigVAE, BigVAEConfig
 from utils import init_weights, LossWithIntermediateLosses
 
 
@@ -23,11 +24,11 @@ class WorldModelOutput:
 
 
 class WorldModel(nn.Module):
-    def __init__(self, obs_vocab_size: int, act_vocab_size: int, config: TransformerConfig) -> None:
+    def __init__(self, obs_vocab_size: int, act_vocab_size: int, config: BigVAEConfig) -> None:
         super().__init__()
         self.obs_vocab_size, self.act_vocab_size = obs_vocab_size, act_vocab_size
         self.config = config
-        self.transformer = Transformer(config)
+        self.transformer = BigVAE(config)
 
         all_but_last_obs_tokens_pattern = torch.ones(config.tokens_per_block)
         all_but_last_obs_tokens_pattern[-2] = 0

@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "src"
+version = "0.1.0"
+description = "Trying to use a AdaVAE (an LLM VAE) as a world model in an RL agent in a text game"
+authors = ["wassname <git@wassname.org>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+torch = {version = "^2.1.0+cu118", source = "pytorch"}
+simple-parsing = "^0.1.4"
+tqdm = "^4.66.1"
+numpy = "^1.26.1"
+pandas = "^2.1.1"
+lightning = "^2.1.0"
+matplotlib = "^3.8.0"
+loguru = "^0.7.2"
+einops = "^0.7.0"
+scikit-learn = "^1.3.1"
+pytorch-optimizer = "^2.12.0"
+torchinfo = "^1.8.0"
+accelerate = "^0.24.1"
+datasets = "^2.14.6"
+peft = "^0.5.0"
+bitsandbytes = {url = "https://github.com/TimDettmers/bitsandbytes/releases/download/0.41.0/bitsandbytes-0.41.0-py3-none-any.whl"}
+transformers = "4.34.0"
+
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu118"
+priority = "explicit"
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.25.2"
+ruff = "^0.1.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
