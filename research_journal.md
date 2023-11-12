@@ -2,7 +2,7 @@
 
 Try IRIs but with pretrained transformer with LoRA adapter
 
-- [ ] first can I run it
+- [x] first can I run it yes with a 1/2 batch size
 - [ ] then can I add 3B with adapter...
 
 ```sh
@@ -66,3 +66,33 @@ def load_model(config, device='cuda'):
     print(router.model.print_trainable_parameters())
     router.model.set_adapter("router")
 ```
+
+Debugging:
+    batch['observations'].shape
+    torch.Size([16, 20, 3, 64, 64])
+
+    obs_tokens.shape
+    torch.Size([16, 20, 16])
+
+    https://vscode.dev/github/wassname/iris_bigvae/blob/just_llms2/src/models/world_model.py#L105
+    tokens
+    tensor([[222, 222, 222,  ..., 409,  55,   2],
+            [222, 222, 222,  ..., 409, 139,   1],
+            [222, 222, 222,  ..., 168, 190,   3],
+            ...,
+            [222, 222, 222,  ..., 168,  55,   0],
+            [222, 222, 222,  ..., 237, 190,   3],
+            [222, 222, 222,  ..., 168,  55,   0]], device='cuda:0')
+    tokens.shape
+    torch.Size([16, 340])
+    where 16 is the batch size. 340 is the step size?. actions was 16,20 int
+
+    tokens.shape int
+    torch.Size([16, 340])
+
+    sequences.shape float32
+    torch.Size([16, 340, 256])
+
+    transfrmer
+    x.shape
+    torch.Size([16, 340, 256])

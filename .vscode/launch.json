@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "main",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "autoReload": {"enable": true,},
+            "env": {"WANDB_MODE":"disabled"},
+            "args": [
+                "env.train.id=BreakoutNoFrameskip-v4",
+                // # make it start early
+                "trainer.training.tokenizer.start_after_epochs=1",
+                "trainer.training.world_model.start_after_epochs=2",
+                "trainer.training.actor_critic.start_after_epochs=3",
+            ]
+        }
+    ]
+}
