@@ -96,3 +96,9 @@ Debugging:
     transfrmer
     x.shape
     torch.Size([16, 340, 256])
+
+# 2023-11-12 16:58:37
+
+So I got it training, but during imagination it passes in a single token with no past steps. But the slicer seems to need at least on block? And so I get none?
+
+hmm it's because num_kept_tokens is 16 not 1. So there should be a whole block passed in ?

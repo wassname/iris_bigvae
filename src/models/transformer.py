@@ -109,11 +109,7 @@ class Transformer(nn.Module):
         super().__init__()
         self.config = config
         self.model = load_pretrained_model(config)
-        # self.ln_f = nn.LayerNorm(self.model.config.vocab_size, config.embed_dim)
         self.ln_f = nn.Linear(self.model.config.vocab_size, config.embed_dim)
-        # self.drop = nn.Dropout(config.embed_pdrop)
-        # self.blocks = nn.ModuleList([Block(config) for _ in range(config.num_layers)])
-        # self.ln_f = nn.LayerNorm(config.embed_dim)
 
     def generate_empty_keys_values(self, n: int, max_tokens: int) -> KeysValues:
         device = self.ln_f.weight.device  # Assumption that all submodules are on the same device
@@ -129,15 +125,6 @@ class Transformer(nn.Module):
             output_hidden_states=True,
         )
         x = outputs.logits.to(torch.float32)
-        # TODO: we output with last dim 50304 but want 2560 (embed dim)
-        x = self.ln_f(x)
-        return x
-        
-        inputs_embeds
-        x = self.drop(sequences)
-        for i, block in enumerate(self.blocks):
-            x = block(x, None if past_keys_values is None else past_keys_values[i])
-
         x = self.ln_f(x)
         return x
 
