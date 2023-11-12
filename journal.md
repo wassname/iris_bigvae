@@ -190,6 +190,16 @@ We add them, plus positions, and add them into one of embed_dim
 
 Now how does the paper describe it? https://openreview.net/pdf?id=vhFu1Acb0xb
 
+# 2023-11-12 12:58:27
+
+Hmm Ok so they have a seperate encoder and decoder and the transformer just represents the dynamics model? But where are the encoder and decodr?
+
+Hmm so one image turns into a sequence of tokens, how?
+- decoding it just using the tokenizer.embeddings then tokenizer.decode, and it's in the world model
+
+
+OK it looks like I don't actually need a VAE here! The encode decode is already made and is decoupled from the dynamic model. So lets start from scratch, loading minstral...
+
 
 # IDEAS
 
