@@ -102,3 +102,12 @@ Debugging:
 So I got it training, but during imagination it passes in a single token with no past steps. But the slicer seems to need at least on block? And so I get none?
 
 hmm it's because num_kept_tokens is 16 not 1. So there should be a whole block passed in ?
+
+wait apparently it's also a problem in the normal repo.... I confuse! maybe it's my config! maybe I need >larger than block size. nope
+
+hmm it still happens in the original repo with my debug params. maybe it's my debug params
+
+
+... trying a full run without my debug params...
+
+note trains.world_model.batch_num_samples:4 fill 20GB gpu ram for the 3b stability ai llm
