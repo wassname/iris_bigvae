@@ -117,7 +117,7 @@ class Transformer(nn.Module):
 
     # @torch.cuda.amp.autocast(dtype=torch.bfloat16)
     def forward(self, sequences: torch.Tensor, past_keys_values: Optional[KeysValues] = None) -> torch.Tensor:
-        # assert past_keys_values is None or len(past_keys_values) == len(self.blocks)
+        assert past_keys_values is None or len(past_keys_values) == self.config.num_layers
         sequences = sequences.to(torch.bfloat16)
         outputs = self.model(
             inputs_embeds=sequences,
@@ -126,6 +126,14 @@ class Transformer(nn.Module):
         )
         x = outputs.logits.to(torch.float32)
         x = self.ln_f(x)
+        
+        # fake it, since it's used to keep track of steps
+        if past_keys_values is not None:
+            k_size = past_keys_values[0]._k_cache._cache.size()
+            k_size = (*k_size[:2], 1, *k_size[3:])
+            v_size = past_keys_values[0]._v_cache._cache.size()
+            v_size = (*v_size[:2], 1, *v_size[3:])
+            past_keys_values[0].update(torch.rand(k_size), torch.rand(v_size))
         return x
 
 

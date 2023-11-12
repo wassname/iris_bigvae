@@ -111,3 +111,39 @@ hmm it still happens in the original repo with my debug params. maybe it's my de
 ... trying a full run without my debug params...
 
 note trains.world_model.batch_num_samples:4 fill 20GB gpu ram for the 3b stability ai llm
+
+ok even with a full run I get the error. I think it's a bug in the original repo. I'll try to debug it there.
+
+    Epoch 51 / 600
+
+    Experience collection (train_dataset): 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 200/200 [00:03<00:00, 59.91it/s]
+    Training tokenizer: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 200/200 [00:17<00:00, 11.53it/s]
+    Training world_model: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 200/200 [02:11<00:00,  1.53it/s]
+    Training actor_critic:   0%|                                                                                                                                                                                     | 0/200 [00:00<?, ?it/s]
+    Error executing job with overrides: ['env.train.id=BreakoutNoFrameskip-v4', 'common.device=cuda:0', 'wandb.mode=offline']
+    Traceback (most recent call last):
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/src/main.py", line 10, in main
+        trainer.run()
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/src/trainer.py", line 111, in run
+        to_log += self.train_agent(epoch)
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/src/trainer.py", line 146, in train_agent
+        metrics_actor_critic = self.train_component(self.agent.actor_critic, self.optimizer_actor_critic, sequence_length=1 + self.cfg.training.actor_critic.burn_in, sample_from_start=False, tokenizer=self.agent.tokenizer, world_model=self.agent.world_model, **cfg_actor_critic)
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/src/trainer.py", line 161, in train_component
+        losses = component.compute_loss(batch, **kwargs_loss) / grad_acc_steps
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/src/models/actor_critic.py", line 102, in compute_loss
+        outputs = self.imagine(batch, tokenizer, world_model, horizon=imagine_horizon)
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/src/models/actor_critic.py", line 149, in imagine
+        obs, reward, done, _ = wm_env.step(action_token, should_predict_next_obs=(k < horizon - 1))
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/.venv/lib/python3.9/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+        return func(*args, **kwargs)
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/src/envs/world_model_env.py", line 75, in step
+        reward = Categorical(logits=outputs_wm.logits_rewards).sample().float().cpu().numpy().reshape(-1) - 1   # (B,)
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/.venv/lib/python3.9/site-packages/torch/distributions/categorical.py", line 70, in __init__
+        super().__init__(batch_shape, validate_args=validate_args)
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/.venv/lib/python3.9/site-packages/torch/distributions/distribution.py", line 66, in __init__
+        valid = constraint.check(value)
+    File "/media/wassname/SGIronWolf/projects5/worldmodels/iris_bigvae/.venv/lib/python3.9/site-packages/torch/distributions/constraints.py", line 226, in check
+        result = result.reshape(
+    RuntimeError: cannot reshape tensor of 0 elements into shape [8, 0, -1] because the unspecified dimension size -1 can be any value and is ambiguous
+
+Oh maybe it's because we don't keep track of KV cache, but it's actually used to track number of steps!!
