@@ -26,8 +26,7 @@ class WorldModel(nn.Module):
     def __init__(self, obs_vocab_size: int, act_vocab_size: int, config: TransformerConfig) -> None:
         super().__init__()
         self.obs_vocab_size, self.act_vocab_size = obs_vocab_size, act_vocab_size
-        self.config = config
-        self.transformer = Transformer(config)
+        self.config = config       
 
         all_but_last_obs_tokens_pattern = torch.ones(config.tokens_per_block)
         all_but_last_obs_tokens_pattern[-2] = 0
@@ -74,6 +73,8 @@ class WorldModel(nn.Module):
         )
 
         self.apply(init_weights)
+        
+        self.transformer = Transformer(config)
 
     def __repr__(self) -> str:
         return "world_model"

@@ -16,6 +16,8 @@ from .kv_caching import KeysValues, KVCache
 
 @dataclass
 class TransformerConfig:
+
+        
     tokens_per_block: int
     max_blocks: int
     attention: str
@@ -27,6 +29,12 @@ class TransformerConfig:
     embed_pdrop: float
     resid_pdrop: float
     attn_pdrop: float
+    
+    model_name: str = "stabilityai/stablelm-3b-4e1t"
+    dropout: float = 0
+    rank: int = 32
+    z_dim: int = 768
+    start_from: str = None
 
     @property
     def max_tokens(self):
@@ -100,19 +108,79 @@ class Transformer(nn.Module):
     def __init__(self, config: TransformerConfig) -> None:
         super().__init__()
         self.config = config
-        self.drop = nn.Dropout(config.embed_pdrop)
-        self.blocks = nn.ModuleList([Block(config) for _ in range(config.num_layers)])
-        self.ln_f = nn.LayerNorm(config.embed_dim)
+        self.model = load_pretrained_model(config)
+        # self.ln_f = nn.LayerNorm(self.model.config.vocab_size, config.embed_dim)
+        self.ln_f = nn.Linear(self.model.config.vocab_size, config.embed_dim)
+        # self.drop = nn.Dropout(config.embed_pdrop)
+        # self.blocks = nn.ModuleList([Block(config) for _ in range(config.num_layers)])
+        # self.ln_f = nn.LayerNorm(config.embed_dim)
 
     def generate_empty_keys_values(self, n: int, max_tokens: int) -> KeysValues:
         device = self.ln_f.weight.device  # Assumption that all submodules are on the same device
         return KeysValues(n, self.config.num_heads, max_tokens, self.config.embed_dim, self.config.num_layers, device)
 
+    # @torch.cuda.amp.autocast(dtype=torch.bfloat16)
     def forward(self, sequences: torch.Tensor, past_keys_values: Optional[KeysValues] = None) -> torch.Tensor:
-        assert past_keys_values is None or len(past_keys_values) == len(self.blocks)
+        # assert past_keys_values is None or len(past_keys_values) == len(self.blocks)
+        sequences = sequences.to(torch.bfloat16)
+        outputs = self.model(
+            inputs_embeds=sequences,
+            return_dict=True,
+            output_hidden_states=True,
+        )
+        x = outputs.logits.to(torch.float32)
+        # TODO: we output with last dim 50304 but want 2560 (embed dim)
+        x = self.ln_f(x)
+        return x
+        
+        inputs_embeds
         x = self.drop(sequences)
         for i, block in enumerate(self.blocks):
             x = block(x, None if past_keys_values is None else past_keys_values[i])
 
         x = self.ln_f(x)
         return x
+
+
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from peft import PeftModel, LoraConfig
+import peft
+
+def load_pretrained_model(config, device="cuda:0"):
+    tokenizer = AutoTokenizer.from_pretrained(config.model_name, trust_remote_code=True)
+    tokenizer.padding_side = "left"
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_use_double_quant=True,
+    )
+    base_model = AutoModelForCausalLM.from_pretrained(
+        config.model_name,
+        device_map={"": device},
+        quantization_config=bnb_config,
+        torch_dtype=torch.bfloat16, 
+        trust_remote_code=True
+    )
+    peft_config = peft.LoraConfig(
+        peft.TaskType.CAUSAL_LM,
+        inference_mode=False,
+        r=config.rank,
+        lora_alpha=8,
+        lora_dropout=config.dropout,
+        target_modules=[
+            "self_attn.q_proj",
+            "self_attn.k_proj",
+            "self_attn.v_proj",
+            "self_attn.o_proj",
+            "mlp.gate_proj",
+            "mlp.up_proj",
+            "mlp.down_proj",
+        ],
+    )
+    base_model_peft = peft.get_peft_model(base_model, peft_config)
+    base_model_peft.add_adapter("dynamics", peft_config)
+    print(base_model_peft.print_trainable_parameters())
+    return base_model_peft

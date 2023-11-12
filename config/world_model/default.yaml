@@ -4,7 +4,7 @@ max_blocks: 20
 attention: 'causal'
 num_layers: 10
 num_heads: 4
-embed_dim: 256
+embed_dim: 2560 # change this to whatever the embedding dimension is in your pretrained llm
 embed_pdrop: 0.1
 resid_pdrop: 0.1
 attn_pdrop: 0.1
