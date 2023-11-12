@@ -8,7 +8,10 @@ Try IRIs but with pretrained transformer with LoRA adapter
 ```sh
 poetry install
 . ./.venv/bin/activate
-python src/main.py env.train.id=BreakoutNoFrameskip-v4 common.device=cuda:0 wandb.mode=online
+python src/main.py env.train.id=BreakoutNoFrameskip-v4 common.device=cuda:0 wandb.mode=offline
+
+# or for quick debug
+WANDB_MODE=disabled python -m pdb src/main.py env.train.id=BreakoutNoFrameskip-v4
 ```
 
 

@@ -18,14 +18,15 @@ bitsandbytes = {url = "https://github.com/TimDettmers/bitsandbytes/releases/down
 transformers = "4.34.0"
 tqdm = "^4.66.1"
 wandb = "^0.12.6"
-ale-py = "^0.8.1"
+ale-py = "^0.7.4"
 pygame = "^2.5.2"
 psutil = "^5.9.6"
 protobuf = "^3.10.0"
 opencv-python = "^4.8.1.78"
 hydra-core = "^1.3.2"
-gym = {extras = ["accept-rom-license"], version = "^0.26.2"}
 torchvision = "^0.16.0"
+numpy = ">=1.18.0"
+gym = {version = "0.22.0", extras = ["accept-rom-license", "atari"]}
 
 [[tool.poetry.source]]
 name = "pytorch"
