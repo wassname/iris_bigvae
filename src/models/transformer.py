@@ -130,10 +130,10 @@ class Transformer(nn.Module):
         # fake it, since it's used to keep track of steps
         if past_keys_values is not None:
             k_size = past_keys_values[0]._k_cache._cache.size()
-            k_size = (*k_size[:2], 1, *k_size[3:])
-            v_size = past_keys_values[0]._v_cache._cache.size()
-            v_size = (*v_size[:2], 1, *v_size[3:])
-            past_keys_values[0].update(torch.rand(k_size), torch.rand(v_size))
+            # k_size = (x.shape[0], x.shape[1], x.shape[1], 1)
+            # v_size = past_keys_values[0]._v_cache._cache.size()
+            v_size = (k_size[0], k_size[1], x.shape[1], k_size[3])
+            past_keys_values[0].update(torch.rand(v_size), torch.rand(v_size))
         return x
 
 
