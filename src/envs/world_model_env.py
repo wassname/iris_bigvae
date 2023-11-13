@@ -56,7 +56,7 @@ class WorldModelEnv:
     def step(self, action: Union[int, np.ndarray, torch.LongTensor], should_predict_next_obs: bool = True) -> None:
         assert self.keys_values_wm is not None and self.num_observations_tokens is not None
 
-        num_passes = 2 + self.num_observations_tokens if should_predict_next_obs else 1
+        num_passes = 1 + self.num_observations_tokens if should_predict_next_obs else 1
 
         output_sequence, obs_tokens = [], []
 
@@ -71,8 +71,8 @@ class WorldModelEnv:
             outputs_wm = self.world_model(token, past_keys_values=self.keys_values_wm)
             output_sequence.append(outputs_wm.output_sequence)
 
-            # if k == 0:
-            if self.world_model(token, past_keys_values=self.keys_values_wm).logits_rewards.shape[1] > 0:
+            # if outputs_wm.logits_rewards.shape[1] > 0:
+            if k == 0:
                 reward = Categorical(logits=outputs_wm.logits_rewards).sample().float().cpu().numpy().reshape(-1) - 1   # (B,)
                 done = Categorical(logits=outputs_wm.logits_ends).sample().cpu().numpy().astype(bool).reshape(-1)       # (B,)
 
