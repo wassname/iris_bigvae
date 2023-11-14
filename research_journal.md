@@ -147,3 +147,19 @@ ok even with a full run I get the error. I think it's a bug in the original repo
     RuntimeError: cannot reshape tensor of 0 elements into shape [8, 0, -1] because the unspecified dimension size -1 can be any value and is ambiguous
 
 Oh maybe it's because we don't keep track of KV cache, but it's actually used to track number of steps!!
+
+# 2023-11-13 20:11:51
+
+I go it working byt ut takes 30 seconds for one one actor critic batch, werird
+
+Experience collection (train_dataset): 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 200/200 [00:03<00:00, 60.45it/s]
+Training tokenizer: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 200/200 [00:17<00:00, 11.26it/s]
+Training world_model: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 200/200 [02:12<00:00,  1.51it/s]
+Training actor_critic:  82%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▍                             | 165/200 [1:01:43<13:24, 22.99s/it]
+
+
+hm maybe it's just the face it has to backprop throguh the whole LLM :( damn... is there another way to train it? Daym. How many params did the original have?
+
+well running eval on the transformer brought it down from 100sec to 60, but it's still huge. 
+
+But then why is the model training fast? It makes not sense

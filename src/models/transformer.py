@@ -5,7 +5,7 @@ Credits to https://github.com/karpathy/minGPT
 from dataclasses import dataclass
 import math
 from typing import Optional
-
+from contextlib import contextmanager
 from einops import rearrange
 import torch
 import torch.nn as nn
@@ -30,7 +30,9 @@ class TransformerConfig:
     resid_pdrop: float
     attn_pdrop: float
     
-    model_name: str = "stabilityai/stablelm-3b-4e1t"
+    # model_name: str = "stabilityai/stablelm-3b-4e1t"
+    # https://huggingface.co/PY007/TinyLlama-1.1B-intermediate-step-715k-1.5T
+    model_name: str = "PY007/TinyLlama-1.1B-intermediate-step-715k-1.5T"
     dropout: float = 0
     rank: int = 32
     z_dim: int = 768
@@ -118,13 +120,14 @@ class Transformer(nn.Module):
     # @torch.cuda.amp.autocast(dtype=torch.bfloat16)
     def forward(self, sequences: torch.Tensor, past_keys_values: Optional[KeysValues] = None) -> torch.Tensor:
         assert past_keys_values is None or len(past_keys_values) == self.config.num_layers
-        sequences = sequences.to(torch.bfloat16)
-        outputs = self.model(
-            inputs_embeds=sequences,
-            return_dict=True,
-            output_hidden_states=True,
-        )
-        x = outputs.logits.to(torch.float32)
+        with set_adapter(self.model, "dynamics"), disable_causal_mask(), torch.cuda.amp.autocast(dtype=torch.bfloat16):
+            # sequences = sequences.to(torch.bfloat16)
+            outputs = self.model(
+                inputs_embeds=sequences,
+                return_dict=True,
+                output_hidden_states=True,
+            )
+        x = outputs.logits#.to(torch.float32)
         x = self.ln_f(x)
         
         # fake it, since it's used to keep track of steps
@@ -135,6 +138,8 @@ class Transformer(nn.Module):
             v_size = (k_size[0], k_size[1], x.shape[1], k_size[3])
             past_keys_values[0].update(torch.rand(v_size), torch.rand(v_size))
         return x
+
+        
 
 
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
@@ -179,3 +184,31 @@ def load_pretrained_model(config, device="cuda:0"):
     base_model_peft.add_adapter("dynamics", peft_config)
     print(base_model_peft.print_trainable_parameters())
     return base_model_peft
+
+@contextmanager
+def set_adapter(model, adapter_name):
+    old_adapter_name = model.active_adapter
+    try:
+        if adapter_name is not None:
+            model.set_adapter(adapter_name)
+            yield model
+        else:
+            with model.disable_adapter():
+                yield model
+    finally:
+        model.set_adapter(old_adapter_name)
+
+@contextmanager
+def disable_causal_mask():
+    import transformers.models.llama.modeling_llama as modeling
+
+    decoder_fn = modeling._make_causal_mask
+
+    def encoder_fn(*args, **kwargs):
+        return torch.zeros_like(decoder_fn(*args, **kwargs))
+
+    try:
+        modeling._make_causal_mask = encoder_fn
+        yield
+    finally:
+        modeling._make_causal_mask = decoder_fn

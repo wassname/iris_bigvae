@@ -10,6 +10,8 @@ import torch.nn as nn
 
 from episode import Episode
 
+from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
+
 
 def configure_optimizer(model, learning_rate, weight_decay, *blacklist_module_names):
     """Credits to https://github.com/karpathy/minGPT"""
@@ -17,7 +19,7 @@ def configure_optimizer(model, learning_rate, weight_decay, *blacklist_module_na
     decay = set()
     no_decay = set()
     whitelist_weight_modules = (torch.nn.Linear, torch.nn.Conv1d)
-    blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
+    blacklist_weight_modules = tuple(ALL_LAYERNORM_LAYERS+[torch.nn.Embedding])
     for mn, m in model.named_modules():
         for pn, p in m.named_parameters():
             fpn = '%s.%s' % (mn, pn) if mn else pn  # full param name

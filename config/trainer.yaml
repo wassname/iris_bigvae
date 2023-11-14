@@ -60,14 +60,14 @@ training:
     start_after_epochs: 5
     steps_per_epoch: 200
   world_model:
-    batch_num_samples: 4
+    batch_num_samples: 8
     grad_acc_steps: 1
     max_grad_norm: 10.0
     weight_decay: 0.01
     start_after_epochs: 25
     steps_per_epoch: 200
   actor_critic:
-    batch_num_samples: 8
+    batch_num_samples: 32
     grad_acc_steps: 1
     max_grad_norm: 10.0
     start_after_epochs: 50

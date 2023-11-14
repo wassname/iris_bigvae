@@ -146,6 +146,10 @@ class ActorCritic(nn.Module):
 
             outputs_ac = self(obs)
             action_token = Categorical(logits=outputs_ac.logits_actions).sample()
+            
+            # TODO this is really slow, I guess we need grad? does it help to put it in eval? no
+            # wm_env.world_model.eval()
+            
             obs, reward, done, _ = wm_env.step(action_token, should_predict_next_obs=(k < horizon - 1))
 
             all_actions.append(action_token)
