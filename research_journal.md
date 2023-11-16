@@ -199,3 +199,27 @@ Training world_model: 100%|█████████████████�
 Training tokenizer: 55sec
 Training world_model 72 sec
 train actor_critic 3min. It looks like it scales with lstm size!
+
+
+new changes 10mins
+lets try no lstm?
+Right now it will take 41 hours for on epoch lol
+
+
+
+ram during stages:
+- actor critic 20G/24
+
+
+how big does my actor critic need to be?
+- IRIS: large 512 lstm on 64,64,3 obs
+  - We ran our experiments with 8 Nvidia A100 40GB GPUs. With two Atari environments running on the same GPU, training takes around 7 days, resulting in an average of 3.5 days per environment.
+- twm: mlp 512
+
+
+How long to train?
+`600*10//6/24` = 41 days
+- 600 epochs * 10 minutes / 6 to get hours, 24 to get days
+
+
+

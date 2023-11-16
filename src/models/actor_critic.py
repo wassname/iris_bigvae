@@ -36,18 +36,19 @@ class ImagineOutput:
 class ActorCritic(nn.Module):
     def __init__(self, act_vocab_size, use_original_obs: bool = False) -> None:
         super().__init__()
-        shrink = 4
+        shrink = 8
+        s = 2
         self.use_original_obs = use_original_obs
-        self.conv1 = nn.Conv2d(3, 32, 3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(3, 32//s, 3, stride=1, padding=1)
         self.maxp1 = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(32, 32, 3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(32//s, 32//s, 3, stride=1, padding=1)
         self.maxp2 = nn.MaxPool2d(2, 2)
-        self.conv3 = nn.Conv2d(32, 64, 3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(32//s, 64//s, 3, stride=1, padding=1)
         self.maxp3 = nn.MaxPool2d(2, 2)
-        self.conv4 = nn.Conv2d(64, 64//shrink, 3, stride=1, padding=1)
+        self.conv4 = nn.Conv2d(64//s, 64//shrink, 3, stride=1, padding=1)
         self.maxp4 = nn.MaxPool2d(2, 2)
 
-        self.lstm_dim = 64
+        self.lstm_dim = 16
         self.lstm = nn.LSTMCell(1024//shrink, self.lstm_dim)
         self.hx, self.cx = None, None
 
