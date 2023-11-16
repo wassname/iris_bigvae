@@ -54,7 +54,7 @@ training:
   should: True
   learning_rate: 0.0001
   tokenizer:
-    batch_num_samples: 32
+    batch_num_samples: 128
     grad_acc_steps: 1
     max_grad_norm: 10.0
     start_after_epochs: 5
@@ -71,7 +71,7 @@ training:
     grad_acc_steps: 1
     max_grad_norm: 10.0
     start_after_epochs: 50
-    steps_per_epoch: 200
+    steps_per_epoch: 20
     imagine_horizon: ${common.sequence_length}
     burn_in: 20
     gamma: 0.995

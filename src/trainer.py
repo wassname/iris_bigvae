@@ -169,6 +169,7 @@ class Trainer:
             if max_grad_norm is not None:
                 torch.nn.utils.clip_grad_norm_(component.parameters(), max_grad_norm)
 
+ 
             optimizer.step()
 
         metrics = {f'{str(component)}/train/total_loss': loss_total_epoch, **intermediate_losses}

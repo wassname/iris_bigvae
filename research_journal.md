@@ -163,3 +163,39 @@ hm maybe it's just the face it has to backprop throguh the whole LLM :( damn... 
 well running eval on the transformer brought it down from 100sec to 60, but it's still huge. 
 
 But then why is the model training fast? It makes not sense
+ 
+# 2023-11-16 12:54:48
+
+Why is agent so slow? Lets find out
+- look at diagram
+- look at train_agent
+  - to tokenizer.compute_loss is just tokenizer
+  - world_model.compute_loss user tokenizer with no grad
+  - actor_critic? takes an hour!!
+    - imagine (with grad?)
+      - x20 = horizon
+        - self(obs)
+        - WorldModelEnv.step this has no grad!
+          - transformer
+          - tokenizer with no grad
+    - compute_lambda_returns with no grad
+
+
+So changes:
+- the world model step always had no grad!
+- I just made the lstm smaller and the horizon smaller
+- from 1h to 3m. Reasonable.
+
+
+Experiment: 
+- try no grad on the model? ok it now takes 20 minutes to train... still slow
+with a smaller lstm and only 10 steos ut tajes 8 mins,
+
+![](img/2023-11-16-13-01-11.png)
+
+Experience collection (train_dataset): 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 200/200 [00:05<00:00, 36.11it/s]
+Training tokenizer: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 200/200 [00:55<00:00,  3.61it/s]
+Training world_model: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 200/200 [01:12<00:00,  2.76it/s]
+Training tokenizer: 55sec
+Training world_model 72 sec
+train actor_critic 3min. It looks like it scales with lstm size!
