@@ -1,4 +1,4 @@
-_target_: models.TransformerConfig
+_target_: src.models.TransformerConfig
 max_blocks: 10  # this is the rollout length when training policy
 num_layers: 1
 num_heads: 1

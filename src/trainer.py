@@ -46,6 +46,7 @@ class Trainer:
         self.reconstructions_dir = self.media_dir / 'reconstructions'
 
         if not cfg.common.resume:
+            print('cwd', Path.cwd())
             config_dir = Path('config')
             config_path = config_dir / 'trainer.yaml'
             config_dir.mkdir(exist_ok=False, parents=False)

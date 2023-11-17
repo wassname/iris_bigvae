@@ -36,8 +36,8 @@ class ImagineOutput:
 class ActorCritic(nn.Module):
     def __init__(self, act_vocab_size, use_original_obs: bool = False, lstm_dim = 16) -> None:
         super().__init__()
-        shrink = 8
-        s = 2
+        shrink = 1
+        s = 1
         self.use_original_obs = use_original_obs
         self.conv1 = nn.Conv2d(3, 32//s, 3, stride=1, padding=1)
         self.maxp1 = nn.MaxPool2d(2, 2)

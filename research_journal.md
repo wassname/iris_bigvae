@@ -232,3 +232,85 @@ Training tokenizer: 100%|██████████████████�
 Training world_model: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 200/200 [01:15<00:00,  2.64it/s]
 Training actor_critic: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 20/20 [03:20<00:00, 10.05s/it]
 
+
+
+- what about resume? oh we seem to have that although the code doesn't make sense https://hydra.cc/docs/tutorials/basic/running_your_app/working_directory/ https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ see eval.py
+- [ ] but it's still too damn slow. what about bfloat16? using auto case?
+- why does it take so long? it would be nice to have a reproduction notebook
+- also the model might be to small now....
+
+how to play
+```sh
+cd outputs/2023-11-17/07-59-44
+python scripts/play.sh
+```
+
+
+## Envs
+
+tl:dr just use pong or breakout or crafter (1m steps)
+
+for steps see [crafter paper](https://arxiv.org/pdf/2109.06780.pdf)
+
+Nethack learning env. What's the obs size? 21x79 of glyphs (5991 possibilities) and 21 dim of stats
+- they use an lstm of 128. 5 layer conv
+- requires 1B steps
+- 
+atari:
+- reqs 200M stpes
+
+progcen:
+- 200M steps
+
+minihack:
+- 2M steps for room 5xt
+- but needs editing to be atari compatible. e.g. 336 × 1264 × 3 pixels
+- pixel_crop 64,64,3 or 9x9 crop works!
+- lstm 256
+- The training on MiniHack’s Room-5x5 task for two million timesteps using our IMPALA baseline takes approximately 4:30 minutes (r
+
+crafter
+- reqs 1M steps
+- "All agents trained for 1M environment steps in under 24 hours on a single GPU and we repeated the training for 10 random seeds per method. The training reward curves are included in Appendix "
+
+
+
+
+from https://arxiv.org/pdf/2111.09794.pdf
+There are several PCG state-varying gridworld environments (
+- [MiniGrid](https://minigrid.farama.org/environments/minigrid/), ~~- BabyAI~~
+- Crafter,
+- 2019 [Rogue-gym,](https://github.com/kngwyu/rogue-gym) 
+- 2020 MarsExplorer, maxe exploration. 1M steps
+- NLE, 
+- MiniHack; 
+- [gym\_nethack](http://campbelljc.com/research/gym_nethack/)
+- 2018 [rogueinabox](https://github.com/rogueinabox/rogueinabox)
+- [rogue-gym](https://github.com/kngwyu/rogue-gym)
+- [MiniGrid](https://github.com/maximecb/gym-minigrid)
+- 2019 [CoinRun](https://github.com/openai/coinrun) no traction or maintanance
+- [MineRL](http://minerl.io/docs)
+- [Project Malmo](https://www.microsoft.com/en-us/research/project/project-malmo/) miencraft
+- [OpenAI Procgen Benchmark](https://openai.com/blog/procgen-benchmark/) 200M steps
+- 2020 [Obstacle Tower](https://github.com/Unity-Technologies/obstacle-tower-env) - 3d slow
+
+non-PCG observation-varying continuous control environments
+- (RoboSuite, DMC-Remastered, DMC-GB, DCS, KitchenShift, NaturalEnvs MuJoCo; Fan
+et al., 2021; Grigsby & Qi, 2020; Hansen & Wang, 2021; Stone et al., 2021; Xing et al., 2021a;
+Zhang et al., 2018a), and multi-task continuous control benchmarks which could be adapted
+to ZSG (CausalWorld, RLBench, Meta-world; Ahmed et al., 2020; James et al., 2019a; Yu
+et al., 2019).
+
+## investigating model slowness
+
+So it's all just that using the transformer to imagine takes almost 0.1s. but it's run so many more times than during training. All my ideas to speed it up don't work.
+
+- [x] eval. no grad
+- [x] remove the call for adapter, causal mask each time?
+- [ ] lower rank?
+
+
+Ok so it's all just the
+- rollout, controller by max block size. 10x
+- the fact that actor_critic can use a larger batch, therefore 4-8x more samples
+- for each one it imagines 2

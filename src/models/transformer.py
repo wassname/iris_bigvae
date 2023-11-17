@@ -49,7 +49,8 @@ class Transformer(nn.Module):
     # @torch.cuda.amp.autocast(dtype=torch.bfloat16)
     def forward(self, sequences: torch.Tensor, past_keys_values: Optional[KeysValues] = None) -> torch.Tensor:
         assert past_keys_values is None or len(past_keys_values) == self.config.num_layers
-        with set_adapter(self.model, "dynamics"), disable_causal_mask(), torch.cuda.amp.autocast(dtype=torch.bfloat16):
+        # with set_adapter(self.model, "dynamics"), disable_causal_mask(), torch.cuda.amp.autocast(dtype=torch.bfloat16):
+        with torch.cuda.amp.autocast(dtype=torch.bfloat16):
             # sequences = sequences.to(torch.bfloat16)
             outputs = self.model(
                 inputs_embeds=sequences,
@@ -111,7 +112,9 @@ def load_pretrained_model(config, device="cuda:0"):
     )
     base_model_peft = peft.get_peft_model(base_model, peft_config)
     base_model_peft.add_adapter("dynamics", peft_config)
+    base_model_peft.set_adapter("dynamics")
     print(base_model_peft.print_trainable_parameters())
+    disable_causal_mask()
     return base_model_peft
 
 @contextmanager

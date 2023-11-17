@@ -28,6 +28,8 @@ torchvision = "^0.16.0"
 numpy = ">=1.18.0"
 gym = {version = "0.22.0", extras = ["accept-rom-license", "atari"]}
 scipy = "^1.11.3"
+crafter = "^1.8.2"
+minihack = "^0.1.5"
 
 [[tool.poetry.source]]
 name = "pytorch"

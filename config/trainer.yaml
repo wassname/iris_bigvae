@@ -67,7 +67,7 @@ training:
     start_after_epochs: 25
     steps_per_epoch: 200
   actor_critic:
-    batch_num_samples: 32
+    batch_num_samples: 16
     grad_acc_steps: 1
     max_grad_norm: 10.0
     start_after_epochs: 50
@@ -92,3 +92,7 @@ evaluation:
     num_episodes_to_save: ${training.actor_critic.batch_num_samples}
     horizon: ${training.actor_critic.imagine_horizon}
     start_after_epochs: ${training.actor_critic.start_after_epochs}
+
+hydra:
+  job:
+    chdir: True
