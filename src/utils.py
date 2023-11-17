@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from episode import Episode
+from .episode import Episode
 
 from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
 

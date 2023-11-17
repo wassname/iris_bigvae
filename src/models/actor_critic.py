@@ -10,11 +10,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from dataset import Batch
-from envs.world_model_env import WorldModelEnv
-from models.tokenizer import Tokenizer
-from models.world_model import WorldModel
-from utils import compute_lambda_returns, LossWithIntermediateLosses
+from ..dataset import Batch
+from ..envs.world_model_env import WorldModelEnv
+from ..models.tokenizer import Tokenizer
+from ..models.world_model import WorldModel
+from ..utils import compute_lambda_returns, LossWithIntermediateLosses
 
 
 @dataclass
@@ -34,7 +34,7 @@ class ImagineOutput:
 
 
 class ActorCritic(nn.Module):
-    def __init__(self, act_vocab_size, use_original_obs: bool = False) -> None:
+    def __init__(self, act_vocab_size, use_original_obs: bool = False, lstm_dim = 16) -> None:
         super().__init__()
         shrink = 8
         s = 2
@@ -48,7 +48,7 @@ class ActorCritic(nn.Module):
         self.conv4 = nn.Conv2d(64//s, 64//shrink, 3, stride=1, padding=1)
         self.maxp4 = nn.MaxPool2d(2, 2)
 
-        self.lstm_dim = 16
+        self.lstm_dim = lstm_dim
         self.lstm = nn.LSTMCell(1024//shrink, self.lstm_dim)
         self.hx, self.cx = None, None
 

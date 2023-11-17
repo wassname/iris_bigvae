@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 import psutil
 import torch
 
-from episode import Episode
+from src.episode import Episode
 
 Batch = Dict[str, torch.Tensor]
 

@@ -14,14 +14,14 @@ import torch.nn as nn
 from tqdm import tqdm
 import wandb
 
-from agent import Agent
-from collector import Collector
-from envs import SingleProcessEnv, MultiProcessEnv
-from episode import Episode
-from make_reconstructions import make_reconstructions_from_batch
-from models.actor_critic import ActorCritic
-from models.world_model import WorldModel
-from utils import configure_optimizer, EpisodeDirManager, set_seed
+from src.agent import Agent
+from src.collector import Collector
+from src.envs import SingleProcessEnv, MultiProcessEnv
+from src.episode import Episode
+from src.make_reconstructions import make_reconstructions_from_batch
+from src.models.actor_critic import ActorCritic
+from src.models.world_model import WorldModel
+from src.utils import configure_optimizer, EpisodeDirManager, set_seed
 
 
 class Trainer:
