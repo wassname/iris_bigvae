@@ -6,11 +6,11 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig
 import torch
 
-from agent import Agent
-from envs import SingleProcessEnv, WorldModelEnv
-from game import AgentEnv, EpisodeReplayEnv, Game
-from models.actor_critic import ActorCritic
-from models.world_model import WorldModel
+from src.agent import Agent
+from src.envs import SingleProcessEnv, WorldModelEnv
+from src.game import AgentEnv, EpisodeReplayEnv, Game
+from src.models.actor_critic import ActorCritic
+from src.models.world_model import WorldModel
 
 
 @hydra.main(config_path="../config", config_name="trainer")

@@ -6,12 +6,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ..dataset import Batch
-from .kv_caching import KeysValues
-from .slicer import Embedder, Head
-from .tokenizer import Tokenizer
-from .transformer import Transformer, TransformerConfig
-from ..utils import init_weights, LossWithIntermediateLosses
+from src.dataset import Batch
+from src.models.kv_caching import KeysValues
+from src.models.slicer import Embedder, Head
+from src.models.tokenizer import Tokenizer
+from src.models.transformer import Transformer, TransformerConfig
+from src.utils import init_weights, LossWithIntermediateLosses
 
 
 @dataclass

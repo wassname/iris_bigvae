@@ -314,3 +314,7 @@ Ok so it's all just the
 - rollout, controller by max block size. 10x
 - the fact that actor_critic can use a larger batch, therefore 4-8x more samples
 - for each one it imagines 2
+
+# 2023-11-18 06:17:55
+
+It trained overnight, now I would like to view a replay
