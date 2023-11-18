@@ -39,6 +39,7 @@ def make_crafter(id, size=64, max_episode_steps=None, done_on_life_loss=False):
     # https://github.com/danijar/dreamerv2/blob/07d906e9c4322c6fc2cd6ed23e247ccd6b7c8c41/dreamerv2/common/envs.py#L242
     # https://github.com/footoredo/torchbeast/blob/12939569cc46b6a8616e4c25b138d97248cc8581/torchbeast/atari_wrappers.py#L301
     env = gym.make(id)
+    env = ResizeObsWrapper(env, (size, size))
     return env
 
 
