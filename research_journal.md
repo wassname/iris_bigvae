@@ -358,3 +358,33 @@ OK it seems slightly better yay! Lets train it overnight and see
 
 next idea is to the delta-IRIS thing where the tokens only have to encode the diff(obs)
 
+# 2023-11-19 16:50:45 
+
+Seems to be working! Now let's plan delta-IRIS
+
+
+So IRIS has
+- Encoder $E(x_0, a_0) = t_0$
+  ```py
+  obs_tokens = self.tokenizer.encode(observations, should_preprocess=True).tokens    # (B, C, H, W) -> (B, K)
+  ```
+- Embed $Emb(t_0) = z_0$
+    ```py
+    embedded_tokens = self.tokenizer.embedding(self.obs_tokens)     # (B, K, E)
+    z = rearrange(embedded_tokens, 'b (h w) e -> b e h w', h=int(np.sqrt(self.num_observations_tokens)))
+    ```
+- Dynamics $D(z_0, a_0) = z_1$
+    ```py
+    outputs_wm = self.world_model(token, past_keys_values=self.keys_values_wm)
+    ```
+- Decoder $D(z_0, a_0) = x_1$
+    ```py
+    rec = self.tokenizer.decode(z, should_postprocess=True)         # (B, C, H, W)
+    ```
+
+
+but we have tokens vs z
+
+Questions:
+- wait why are we just passing in "action_token" to the transformer and not obs? that must have obs in it right... right??? confirm
+- in iris-delta how did they pass everything in? I guess obs_prev was tokenized too? I think the slices are annoying so maybe I should just pass things seperatly

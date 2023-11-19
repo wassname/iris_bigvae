@@ -69,6 +69,7 @@ class WorldModelEnv:
 
         for k in range(num_passes):  # assumption that there is only one action token.
 
+            # FIXME: hold on we are ONLY passing in the action token! should it not be obs too
             outputs_wm = self.world_model(token, past_keys_values=self.keys_values_wm)
             output_sequence.append(outputs_wm.output_sequence)
             if k == 0:
