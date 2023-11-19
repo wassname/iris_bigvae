@@ -16,23 +16,27 @@ from .kv_caching import KeysValues, KVCache
 
 @dataclass
 class TransformerConfig:
-
-    max_blocks: int
-
-    num_layers: int
-    num_heads: int
-    embed_dim: int
-    tokens_per_block: int
-    
     # model_name: str = "stabilityai/stablelm-3b-4e1t"
     # https://huggingface.co/PY007/TinyLlama-1.1B-intermediate-step-715k-1.5T
+    vocab_size: int = 32000
+    embed_dim: int = 2048
+    
+    max_blocks: int = 20
+    tokens_per_block: int = 17
+    
     model_name: str = "PY007/TinyLlama-1.1B-intermediate-step-715k-1.5T"
-    dropout: float = 0
+    dropout: float = 0.1
     rank: int = 32
 
     @property
     def max_tokens(self):
         return self.tokens_per_block * self.max_blocks
+    
+    
+def freeze(n: nn.Module):
+    for p in n.parameters():
+        p.requires_grad = False
+    return n
 
 
 class Transformer(nn.Module):
@@ -41,13 +45,14 @@ class Transformer(nn.Module):
         self.config = config
         self.model = load_pretrained_model(config)
         self.ln_f = nn.Linear(self.model.config.vocab_size, config.embed_dim)
+        self.embedding = freeze(self.model.base_model.model.model.embed_tokens.to(torch.float)) # HACK: custom path to embeddings layer for model
 
     def generate_empty_keys_values(self, n: int, max_tokens: int) -> KeysValues:
         device = self.ln_f.weight.device  # Assumption that all submodules are on the same device
-        return KeysValues(n, self.config.num_heads, max_tokens, self.config.embed_dim, self.config.num_layers, device)
+        return KeysValues(n, 1, max_tokens, self.config.embed_dim, 1, device)
 
     def forward(self, sequences: torch.Tensor, past_keys_values: Optional[KeysValues] = None) -> torch.Tensor:
-        assert past_keys_values is None or len(past_keys_values) == self.config.num_layers
+        assert past_keys_values is None or len(past_keys_values) == 1
         with torch.cuda.amp.autocast(dtype=torch.bfloat16):
             outputs = self.model(
                 inputs_embeds=sequences,
@@ -60,8 +65,6 @@ class Transformer(nn.Module):
         # fake it, since it's used to keep track of steps
         if past_keys_values is not None:
             k_size = past_keys_values[0]._k_cache._cache.size()
-            # k_size = (x.shape[0], x.shape[1], x.shape[1], 1)
-            # v_size = past_keys_values[0]._v_cache._cache.size()
             v_size = (k_size[0], k_size[1], x.shape[1], k_size[3])
             past_keys_values[0].update(torch.rand(v_size), torch.rand(v_size))
         return x

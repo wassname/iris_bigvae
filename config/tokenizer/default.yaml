@@ -1,14 +1,14 @@
 _target_: src.models.tokenizer.Tokenizer
 
-vocab_size: 32000 # change to llm vocab dim
-embed_dim: 2048  # change this to whatever the embedding dimension is in your pretrained llm 2048 for llama. 2560 for stablelm
+vocab_size: ${..world_model.vocab_size}
+embed_dim: ${..world_model.embed_dim}
 encoder:
   _target_: src.models.tokenizer.Encoder
   config:
     _target_: src.models.tokenizer.EncoderDecoderConfig
     resolution: 64
     in_channels: 3
-    z_channels: 32000
+    z_channels: ${...vocab_size}
     ch: 64
     ch_mult: [1, 1, 1, 1, 1]
     num_res_blocks: 2

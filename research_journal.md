@@ -354,3 +354,6 @@ idea
   - yes I am bypassing it by passing in the input_embeds... but maybe I shouldn't
 - [x] use same embedding everywhere. e.g. model embedding in encoder decoder?
   - Our embedings is (embed_tokens): Embedding(32000, 2048). So we would need to encode to 32000!
+
+
+ok we need to freeze it, and change dtype

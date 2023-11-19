@@ -1,9 +1,8 @@
 _target_: src.models.TransformerConfig
 max_blocks: 10  # this is the rollout length when training policy
-num_layers: 1
-num_heads: 1
-embed_dim: ${..tokenizer.embed_dim}
-dropout: 0.1
-model_name: "PY007/TinyLlama-1.1B-intermediate-step-715k-1.5T"
-rank: 32
 tokens_per_block: 17 # how much info we can encode
+dropout: 0.1
+rank: 32 # lora rank
+model_name: "PY007/TinyLlama-1.1B-intermediate-step-715k-1.5T"
+vocab_size: 32000 # change to llm vocab dim
+embed_dim: 2048  # change this to whatever the embedding dimension is in your pretrained llm 2048 for llama. 2560 for stablelm

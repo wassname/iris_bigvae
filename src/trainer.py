@@ -81,10 +81,15 @@ class Trainer:
         assert self.cfg.training.should or self.cfg.evaluation.should
         env = train_env if self.cfg.training.should else test_env
 
-        # tokenizer = instantiate(cfg.tokenizer)
         world_model = WorldModel(obs_vocab_size=cfg.tokenizer.vocab_size, act_vocab_size=env.num_actions, config=instantiate(cfg.world_model))
-        embedding = world_model.transformer.embedding
-        tokenizer = Tokenizer(embedding=embedding, **cfg.tokenizer.embedding)
+        transformer_embedding = world_model.transformer.embedding
+        tokenizer = Tokenizer(
+            transformer_embedding=transformer_embedding,
+            vocab_size=cfg.tokenizer.vocab_size,
+            embed_dim=cfg.tokenizer.embed_dim,
+            encoder=instantiate(cfg.tokenizer.encoder),
+            decoder=instantiate(cfg.tokenizer.decoder),
+        )
         actor_critic = ActorCritic(**cfg.actor_critic, act_vocab_size=env.num_actions)
         self.agent = Agent(tokenizer, world_model, actor_critic).to(self.device)
         print(f'{sum(p.numel() for p in self.agent.tokenizer.parameters())} parameters in agent.tokenizer')

@@ -33,20 +33,26 @@ class WorldModel(nn.Module):
         act_tokens_pattern = torch.zeros(self.config.tokens_per_block)
         act_tokens_pattern[-1] = 1
         obs_tokens_pattern = 1 - act_tokens_pattern
+        
+        self.transformer = Transformer(config)
+        transformer_embedding = self.transformer.embedding
 
         self.pos_emb = nn.Embedding(config.max_tokens, config.embed_dim)
+        self.act_emb = nn.Embedding(act_vocab_size, config.embed_dim)
 
         self.embedder = Embedder(
             max_blocks=config.max_blocks,
             block_masks=[act_tokens_pattern, obs_tokens_pattern],
-            embedding_tables=nn.ModuleList([nn.Embedding(act_vocab_size, config.embed_dim), nn.Embedding(obs_vocab_size, config.embed_dim)])
+            embedding_tables=nn.ModuleList([self.act_emb, transformer_embedding])
         )
+        
+        # why have this? Well I worry that the transformer can't adapt, since so much is frozen
         self.post_embed = nn.Sequential(
             nn.Linear(config.embed_dim, config.embed_dim),
             nn.ReLU(),
             nn.Linear(config.embed_dim, config.embed_dim),
-            nn.ReLU(),
-            nn.Linear(config.embed_dim, config.embed_dim)
+            # nn.ReLU(),
+            # nn.Linear(config.embed_dim, config.embed_dim)
         )
 
         self.head_observations = Head(
@@ -79,9 +85,15 @@ class WorldModel(nn.Module):
             )
         )
 
-        self.apply(init_weights)
+        # don't apply to transformer or transformer/obs embeddings
+        self.act_emb.apply(init_weights)
+        self.pos_emb.apply(init_weights)
+        self.post_embed.apply(init_weights)
+        self.head_observations.apply(init_weights)
+        self.head_rewards.apply(init_weights)
+        self.head_ends.apply(init_weights)
         
-        self.transformer = Transformer(config)
+        
 
     def __repr__(self) -> str:
         return "world_model"
@@ -92,7 +104,6 @@ class WorldModel(nn.Module):
         assert num_steps <= self.config.max_tokens
         prev_steps = 0 if past_keys_values is None else past_keys_values.size
 
-        # TODO: replace wth model embedder?
         sequences = self.embedder(tokens, num_steps, prev_steps) + self.pos_emb(prev_steps + torch.arange(num_steps, device=tokens.device))
         # [batch=8, num_steps=170, embed_size=2048]
         sequences = self.post_embed(sequences)
