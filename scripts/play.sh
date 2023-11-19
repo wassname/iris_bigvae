@@ -27,6 +27,7 @@ while [ "$1" != "" ]; do
         -e | --episode )
             mode="episode_replay"
             ;; # replay train, test, or imagined episodes. shows quality of dynamics model
+            # this is quick low resource way to check the dynamics model and agent while training
         -w | --world-model )
             mode="play_in_world_model"
             ;; # human plays in world model
@@ -37,4 +38,4 @@ while [ "$1" != "" ]; do
     shift
 done
 
-python -m pdb src/play.py hydra.run.dir=. hydra.output_subdir=null +mode="${mode}" +fps="${fps}" +header="${header}" +reconstruction="${reconstruction}" +save_mode="${save_mode}"
+python src/play.py hydra.run.dir=. hydra.output_subdir=null +mode="${mode}" +fps="${fps}" +header="${header}" +reconstruction="${reconstruction}" +save_mode="${save_mode}"

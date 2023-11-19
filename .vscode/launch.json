@@ -19,8 +19,8 @@
                 "env.train.id=CrafterReward-v1",
                 // # make it start early
                 "training.tokenizer.start_after_epochs=1",
-                "training.world_model.start_after_epochs=1",
-                "training.actor_critic.start_after_epochs=1",
+                "training.world_model.start_after_epochs=2",
+                "training.actor_critic.start_after_epochs=3",
                 "training.tokenizer.steps_per_epoch=10",
                 "training.world_model.steps_per_epoch=10",
                 "training.actor_critic.steps_per_epoch=10",

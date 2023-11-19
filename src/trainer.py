@@ -200,7 +200,7 @@ class Trainer:
         if epoch > cfg_world_model.start_after_epochs:
             metrics_world_model = self.eval_component(self.agent.world_model, cfg_world_model.batch_num_samples, sequence_length=self.cfg.common.sequence_length, tokenizer=self.agent.tokenizer)
 
-        if epoch > cfg_actor_critic.start_after_epochs:
+        if epoch > cfg_world_model.start_after_epochs:
             self.inspect_imagination(epoch)
 
         if cfg_tokenizer.save_reconstructions:

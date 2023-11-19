@@ -345,9 +345,6 @@ Why is it not learning? It's because the dynamics model is total BS!!!
 # 2023-11-19 06:45:34
 
 So I tried just trainign the world model for 200 epochs. And with a post_embedding layer. It helped the flickering. But not enougth to actually go for the obvious local minima of the next state equals the last
-
-
-
   
 idea
 - bypass embedding?, but wait dreamerv3 needed quant z... 
@@ -357,3 +354,7 @@ idea
 
 
 ok we need to freeze it, and change dtype
+OK it seems slightly better yay! Lets train it overnight and see
+
+next idea is to the delta-IRIS thing where the tokens only have to encode the diff(obs)
+
