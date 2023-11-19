@@ -47,6 +47,7 @@ class WorldModel(nn.Module):
         )
         
         # why have this? Well I worry that the transformer can't adapt, since so much is frozen
+        # TODO: If I get the dynamics model working, maybe try without it
         self.post_embed = nn.Sequential(
             nn.Linear(config.embed_dim, config.embed_dim),
             nn.ReLU(),

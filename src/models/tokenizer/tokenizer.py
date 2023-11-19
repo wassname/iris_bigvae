@@ -46,6 +46,8 @@ class Tokenizer(nn.Module):
     def compute_loss(self, batch: Batch, **kwargs: Any) -> LossWithIntermediateLosses:
         assert self.lpips is not None
         observations = self.preprocess_input(rearrange(batch['observations'], 'b t c h w -> (b t) c h w'))
+        # TODO: in the delta-IRIS paper (https://openreview.net/forum?id=o8IDoZggqO) they encode(x0, a0, x1) -> z1 and decode(x0, a0, z1). In esense the tokens only need to encode the change
+        # note they also do dynamics(x0, a0, z1) -> z2. decode(x1, a1, z2) -> x2
         z, z_quantized, reconstructions = self(observations, should_preprocess=False, should_postprocess=False)
 
         # Codebook loss. Notes:
