@@ -352,5 +352,5 @@ So I tried just trainign the world model for 200 epochs. And with a post_embeddi
 idea
 - bypass embedding?, but wait dreamerv3 needed quant z... 
   - yes I am bypassing it by passing in the input_embeds... but maybe I shouldn't
-- use same embedding everywhere. e.g. model embedding in encoder decoder?
+- [x] use same embedding everywhere. e.g. model embedding in encoder decoder?
   - Our embedings is (embed_tokens): Embedding(32000, 2048). So we would need to encode to 32000!

@@ -92,6 +92,7 @@ class WorldModel(nn.Module):
         assert num_steps <= self.config.max_tokens
         prev_steps = 0 if past_keys_values is None else past_keys_values.size
 
+        # TODO: replace wth model embedder?
         sequences = self.embedder(tokens, num_steps, prev_steps) + self.pos_emb(prev_steps + torch.arange(num_steps, device=tokens.device))
         # [batch=8, num_steps=170, embed_size=2048]
         sequences = self.post_embed(sequences)

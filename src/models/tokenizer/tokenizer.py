@@ -23,12 +23,12 @@ class TokenizerEncoderOutput:
 
 
 class Tokenizer(nn.Module):
-    def __init__(self, vocab_size: int, embed_dim: int, encoder: Encoder, decoder: Decoder, with_lpips: bool = True) -> None:
+    def __init__(self, embedding, vocab_size: int, embed_dim: int, encoder: Encoder, decoder: Decoder, with_lpips: bool = True) -> None:
         super().__init__()
         self.vocab_size = vocab_size
         self.encoder = encoder
         self.pre_quant_conv = torch.nn.Conv2d(encoder.config.z_channels, embed_dim, 1)
-        self.embedding = nn.Embedding(vocab_size, embed_dim) # TODO: use model embed?
+        self.embedding = embedding # nn.Embedding(vocab_size, embed_dim) # TODO: use model embed?
         self.post_quant_conv = torch.nn.Conv2d(embed_dim, decoder.config.z_channels, 1)
         self.decoder = decoder
         self.embedding.weight.data.uniform_(-1.0 / vocab_size, 1.0 / vocab_size)

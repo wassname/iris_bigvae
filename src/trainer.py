@@ -22,6 +22,7 @@ from src.make_reconstructions import make_reconstructions_from_batch
 from src.models.actor_critic import ActorCritic
 from src.models.world_model import WorldModel
 from src.utils import configure_optimizer, EpisodeDirManager, set_seed
+from src.models.tokenizer import Tokenizer
 
 
 class Trainer:
@@ -80,8 +81,10 @@ class Trainer:
         assert self.cfg.training.should or self.cfg.evaluation.should
         env = train_env if self.cfg.training.should else test_env
 
-        tokenizer = instantiate(cfg.tokenizer)
-        world_model = WorldModel(obs_vocab_size=tokenizer.vocab_size, act_vocab_size=env.num_actions, config=instantiate(cfg.world_model))
+        # tokenizer = instantiate(cfg.tokenizer)
+        world_model = WorldModel(obs_vocab_size=cfg.tokenizer.vocab_size, act_vocab_size=env.num_actions, config=instantiate(cfg.world_model))
+        embedding = world_model.transformer.embedding
+        tokenizer = Tokenizer(embedding=embedding, **cfg.tokenizer.embedding)
         actor_critic = ActorCritic(**cfg.actor_critic, act_vocab_size=env.num_actions)
         self.agent = Agent(tokenizer, world_model, actor_critic).to(self.device)
         print(f'{sum(p.numel() for p in self.agent.tokenizer.parameters())} parameters in agent.tokenizer')
