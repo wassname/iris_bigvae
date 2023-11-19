@@ -318,3 +318,39 @@ Ok so it's all just the
 # 2023-11-18 06:17:55
 
 It trained overnight, now I would like to view a replay
+
+Hmm "delta-IRIS" ∆-IRIS 
+https://openreview.net/forum?id=o8IDoZggqO
+∆-IRIS encodes
+new frames by attending to the ongoing trajectory, effec-
+tively describing deltas between timesteps.
+This new ap-
+proach drastically reduces the number of tokens to encode
+frames, since they are not encoded independently as in IRIS.
+In the Crafter benchmark (Hafner, 2022), ∆-IRIS unlocks
+16 out of 22 objectives at the 10M frames mark
+
+
+# 2023-11-18 16:16:16
+
+Why is it not learning? It's because the dynamics model is total BS!!!
+
+- [ ] Well lets try training it for longer then. It's cheap to train so..
+- [ ] also maybe train tokenizer and model together? I have a lot of frozen layers, including the embeddings... so might be better
+  - [ ] oh no we do have an unforzen embedder before the transformer or more layers
+  - maybe I need a higher rank lora? after all I'm changing a lot from text tokens
+  - maybe no tokens, bypass to embedder?
+
+
+# 2023-11-19 06:45:34
+
+So I tried just trainign the world model for 200 epochs. And with a post_embedding layer. It helped the flickering. But not enougth to actually go for the obvious local minima of the next state equals the last
+
+
+
+  
+idea
+- bypass embedding?, but wait dreamerv3 needed quant z... 
+  - yes I am bypassing it by passing in the input_embeds... but maybe I shouldn't
+- use same embedding everywhere. e.g. model embedding in encoder decoder?
+  - Our embedings is (embed_tokens): Embedding(32000, 2048). So we would need to encode to 32000!

@@ -41,6 +41,13 @@ class WorldModel(nn.Module):
             block_masks=[act_tokens_pattern, obs_tokens_pattern],
             embedding_tables=nn.ModuleList([nn.Embedding(act_vocab_size, config.embed_dim), nn.Embedding(obs_vocab_size, config.embed_dim)])
         )
+        self.post_embed = nn.Sequential(
+            nn.Linear(config.embed_dim, config.embed_dim),
+            nn.ReLU(),
+            nn.Linear(config.embed_dim, config.embed_dim),
+            nn.ReLU(),
+            nn.Linear(config.embed_dim, config.embed_dim)
+        )
 
         self.head_observations = Head(
             max_blocks=config.max_blocks,
@@ -86,7 +93,8 @@ class WorldModel(nn.Module):
         prev_steps = 0 if past_keys_values is None else past_keys_values.size
 
         sequences = self.embedder(tokens, num_steps, prev_steps) + self.pos_emb(prev_steps + torch.arange(num_steps, device=tokens.device))
-
+        # [batch=8, num_steps=170, embed_size=2048]
+        sequences = self.post_embed(sequences)
         x = self.transformer(sequences, past_keys_values)
 
         logits_observations = self.head_observations(x, num_steps=num_steps, prev_steps=prev_steps)
@@ -98,6 +106,7 @@ class WorldModel(nn.Module):
     def compute_loss(self, batch: Batch, tokenizer: Tokenizer, **kwargs: Any) -> LossWithIntermediateLosses:
 
         with torch.no_grad():
+            # [B=8, S=10, Colors=3, H=64, W=64] -> [B=8, S=10, 16]
             obs_tokens = tokenizer.encode(batch['observations'], should_preprocess=True).tokens  # (BL, K)
 
         act_tokens = rearrange(batch['actions'], 'b l -> b l 1')

@@ -46,18 +46,15 @@ class Transformer(nn.Module):
         device = self.ln_f.weight.device  # Assumption that all submodules are on the same device
         return KeysValues(n, self.config.num_heads, max_tokens, self.config.embed_dim, self.config.num_layers, device)
 
-    # @torch.cuda.amp.autocast(dtype=torch.bfloat16)
     def forward(self, sequences: torch.Tensor, past_keys_values: Optional[KeysValues] = None) -> torch.Tensor:
         assert past_keys_values is None or len(past_keys_values) == self.config.num_layers
-        # with set_adapter(self.model, "dynamics"), disable_causal_mask(), torch.cuda.amp.autocast(dtype=torch.bfloat16):
         with torch.cuda.amp.autocast(dtype=torch.bfloat16):
-            # sequences = sequences.to(torch.bfloat16)
             outputs = self.model(
                 inputs_embeds=sequences,
                 return_dict=True,
                 output_hidden_states=True,
             )
-        x = outputs.logits#.to(torch.float32)
+        x = outputs.logits
         x = self.ln_f(x)
         
         # fake it, since it's used to keep track of steps
@@ -114,7 +111,7 @@ def load_pretrained_model(config, device="cuda:0"):
     base_model_peft.add_adapter("dynamics", peft_config)
     base_model_peft.set_adapter("dynamics")
     print(base_model_peft.print_trainable_parameters())
-    disable_causal_mask()
+    disable_causal_mask_always()
     return base_model_peft
 
 @contextmanager
@@ -129,6 +126,16 @@ def set_adapter(model, adapter_name):
                 yield model
     finally:
         model.set_adapter(old_adapter_name)
+
+def disable_causal_mask_always():
+    import transformers.models.llama.modeling_llama as modeling
+
+    decoder_fn = modeling._make_causal_mask
+
+    def encoder_fn(*args, **kwargs):
+        return torch.zeros_like(decoder_fn(*args, **kwargs))
+
+    modeling._make_causal_mask = encoder_fn
 
 @contextmanager
 def disable_causal_mask():

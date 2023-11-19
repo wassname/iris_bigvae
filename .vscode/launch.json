@@ -14,7 +14,7 @@
             "autoReload": {"enable": true,},
             "env": {"WANDB_MODE":"disabled"},
             "args": [
-                "'wandb.mode=disabled",
+                // "'wandb.mode=disabled",
                 // "env.train.id=BreakoutNoFrameskip-v4",
                 "env.train.id=CrafterReward-v1",
                 // # make it start early
@@ -34,19 +34,8 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "autoReload": {"enable": true,},
-            "env": {"WANDB_MODE":"disabled"},
             "args": [
-                "'wandb.mode=disabled",
-                // "env.train.id=BreakoutNoFrameskip-v4",
                 "env.train.id=CrafterReward-v1",
-                // # make it start early
-                "training.tokenizer.start_after_epochs=1",
-                "training.world_model.start_after_epochs=1",
-                "training.actor_critic.start_after_epochs=1",
-                
-                "training.tokenizer.steps_per_epoch=10",
-                "training.world_model.steps_per_epoch=10",
-                "training.actor_critic.steps_per_epoch=10",
             ]
         }
     ]
