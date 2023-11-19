@@ -10,6 +10,7 @@ from einops import rearrange
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+from loguru import logger
 
 from .kv_caching import KeysValues, KVCache
 
@@ -98,8 +99,9 @@ def load_pretrained_model(config, device="cuda:0"):
         peft.TaskType.CAUSAL_LM,
         inference_mode=False,
         r=config.rank,
-        lora_alpha=8,
+        lora_alpha=config.rank*2, # Adjusting the LoRA rank is essential, and so is selecting an apt alpha value. A good heuristic is setting alpha at twice the rank's value. https://magazine.sebastianraschka.com/p/practical-tips-for-finetuning-llms
         lora_dropout=config.dropout,
+        # TODO: If you're incorporating LoRA, ensure it's applied across all layers, not just to the Key and Value matrices, to maximize model performance.
         target_modules=[
             "self_attn.q_proj",
             "self_attn.k_proj",
@@ -108,13 +110,19 @@ def load_pretrained_model(config, device="cuda:0"):
             "mlp.gate_proj",
             "mlp.up_proj",
             "mlp.down_proj",
+            # "wte", "embed_tokens",
+            "lm_head",
         ],
+        bias=True,
+        # tune the embedding layer and prediction head
+        modules_to_save = ["lm_head", "embed_tokens"],
     )
     base_model_peft = peft.get_peft_model(base_model, peft_config)
-    base_model_peft.add_adapter("dynamics", peft_config)
-    base_model_peft.set_adapter("dynamics")
-    print(base_model_peft.print_trainable_parameters())
+    base_model_peft.add_adapter(adapter_name="dynamics", peft_config=peft_config) # make an adapter
+    base_model_peft.set_adapter("dynamics") # use an adapter
     disable_causal_mask_always()
+    print(base_model_peft.print_trainable_parameters())
+    logger.info(f"loaded model {base_model_peft}")
     return base_model_peft
 
 @contextmanager
