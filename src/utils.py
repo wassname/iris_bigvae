@@ -3,7 +3,7 @@ import cv2
 from pathlib import Path
 import random
 import shutil
-
+from loguru import logger
 import numpy as np
 import torch
 import torch.nn as nn
@@ -15,6 +15,7 @@ from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
 
 def configure_optimizer(model, learning_rate, weight_decay, *blacklist_module_names):
     """Credits to https://github.com/karpathy/minGPT"""
+    # FIXME: check this is still good for LoRA
     # separate out all parameters to those that will and won't experience regularizing weight decay
     decay = set()
     no_decay = set()
@@ -39,6 +40,7 @@ def configure_optimizer(model, learning_rate, weight_decay, *blacklist_module_na
     param_dict = {pn: p for pn, p in model.named_parameters()}
     inter_params = decay & no_decay
     union_params = decay | no_decay
+    logger.debug(f"decay {decay} no_decay {no_decay}")
     assert len(inter_params) == 0, f"parameters {str(inter_params)} made it into both decay/no_decay sets!"
     assert len(param_dict.keys() - union_params) == 0, f"parameters {str(param_dict.keys() - union_params)} were not separated into either decay/no_decay set!"
 

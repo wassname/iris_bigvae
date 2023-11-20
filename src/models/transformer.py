@@ -111,18 +111,17 @@ def load_pretrained_model(config, device="cuda:0"):
             "mlp.up_proj",
             "mlp.down_proj",
             # "wte", "embed_tokens",
-            "lm_head",
+            # "lm_head",
         ],
-        bias=True,
+        # bias="lora_only",
         # tune the embedding layer and prediction head
-        modules_to_save = ["lm_head", "embed_tokens"],
+        modules_to_save = ["lm_head",], # we want the classifier parameters to be trained too when fine-tuning the base model on our custom dataset. To ensure that the classifier parameters are also trained, we specify modules_to_save. 
     )
     base_model_peft = peft.get_peft_model(base_model, peft_config)
-    base_model_peft.add_adapter(adapter_name="dynamics", peft_config=peft_config) # make an adapter
-    base_model_peft.set_adapter("dynamics") # use an adapter
+    base_model_peft.add_adapter(adapter_name="dynamics", peft_config=peft_config) # make and set an adapter
     disable_causal_mask_always()
     print(base_model_peft.print_trainable_parameters())
-    logger.info(f"loaded model {base_model_peft}")
+    logger.debug(f"loaded model {base_model_peft}")
     return base_model_peft
 
 @contextmanager
