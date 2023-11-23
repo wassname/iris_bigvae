@@ -40,6 +40,7 @@ class WorldModel(nn.Module):
         self.pos_emb = nn.Embedding(config.max_tokens, config.embed_dim)
         self.act_emb = nn.Embedding(act_vocab_size, config.embed_dim)
 
+        # FIXME: having slices is unclear. maybe it's better just to have obs and action embeddings?
         self.embedder = Embedder(
             max_blocks=config.max_blocks,
             block_masks=[act_tokens_pattern, obs_tokens_pattern],
@@ -101,7 +102,7 @@ class WorldModel(nn.Module):
 
     def forward(self, tokens: torch.LongTensor, past_keys_values: Optional[KeysValues] = None) -> WorldModelOutput:
 
-        num_steps = tokens.size(1)  # (B, T)
+        num_steps = tokens.size(1)  # (B=8, T=170) where often the last 10 are actons
         assert num_steps <= self.config.max_tokens
         prev_steps = 0 if past_keys_values is None else past_keys_values.size
 
@@ -118,12 +119,13 @@ class WorldModel(nn.Module):
 
     def compute_loss(self, batch: Batch, tokenizer: Tokenizer, **kwargs: Any) -> LossWithIntermediateLosses:
 
-        with torch.no_grad():
-            # [B=8, S=10, Colors=3, H=64, W=64] -> [B=8, S=10, 16]
-            obs_tokens = tokenizer.encode(batch['observations'], should_preprocess=True).tokens  # (BL, K)
+        # with torch.no_grad():
+        # [B=8, S=10, Colors=3, H=64, W=64] -> [B=8, S=10, 16]
+        obs_tokens = tokenizer.encode(batch['observations'], should_preprocess=True).tokens  # (BL, K)
 
         act_tokens = rearrange(batch['actions'], 'b l -> b l 1')
         tokens = rearrange(torch.cat((obs_tokens, act_tokens), dim=2), 'b l k1 -> b (l k1)')  # (B, L(K+1))
+        # So first 10 are observation, the last 10 tokens are actions
 
         outputs = self(tokens)
 
