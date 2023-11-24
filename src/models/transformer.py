@@ -46,7 +46,7 @@ class Transformer(nn.Module):
         self.config = config
         self.model = load_pretrained_model(config)
         self.ln_f = nn.Linear(self.model.config.vocab_size, config.embed_dim)
-        self.embedding = freeze(self.model.base_model.model.model.embed_tokens.to(torch.float)) # HACK: custom path to embeddings layer for model
+        self.embedding = freeze(self.model.base_model.embed_tokens.to(torch.float)) # HACK: custom path to embeddings layer for model
 
     def generate_empty_keys_values(self, n: int, max_tokens: int) -> KeysValues:
         device = self.ln_f.weight.device  # Assumption that all submodules are on the same device
