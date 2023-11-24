@@ -16,3 +16,6 @@ watch_latest:
     cd *([-1]) && \
     cd *([-1]) && \
     scripts/play.sh -e -r -h
+
+default: 
+    just --list

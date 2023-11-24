@@ -388,3 +388,15 @@ but we have tokens vs z
 Questions:
 - wait why are we just passing in "action_token" to the transformer and not obs? that must have obs in it right... right??? confirm
 - in iris-delta how did they pass everything in? I guess obs_prev was tokenized too? I think the slices are annoying so maybe I should just pass things seperatly
+
+# 2023-11-24 10:56:40
+
+If I unfreeze the whole transformer, it seem to learn the most obvious dynamics (the next latent space is the same as the last). 
+
+To summarize
+- with Qlora it didn't learn that
+- with unfrozen head it didn't
+- when training transformer and obs embedding together it did not (frozen llm embeddings)
+
+
+no it didn't work with tokenizer sep hmm
