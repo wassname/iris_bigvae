@@ -1,5 +1,8 @@
 
-Fork of IRIS, where instead of a new transformer as a world model we use an adapter on a pre-trained LLM. The hypothesis is that the pre-trained LLM will help the world model learn faster and in a more data-efficient manner.
+
+Fork of IRIS, where instead of a new transformer as a world model we use an adapter on a pre-trained LLM. 
+
+The **hypothesis** is that the *pre-trained LLM will help the world model learn faster and in a more data-efficient manner*.
 
 See also:
 - [AdaVAE](https://github.com/ImKeTT/AdaVAE)
