@@ -1,9 +1,24 @@
 
-Fork of IRIS, where instead of a new transformer as a world model we use an adapter on a pretrained LLM. The hypothesis is that the pretrained LLM will help the world model learn faster and in a more data effecient manner.
+Fork of IRIS, where instead of a new transformer as a world model we use an adapter on a pre-trained LLM. The hypothesis is that the pre-trained LLM will help the world model learn faster and in a more data-efficient manner.
 
 See also:
 - [AdaVAE](https://github.com/ImKeTT/AdaVAE)
 - [bigvae](https://github.com/JD-P/minihf/blob/adavae-moe/vae_infer.py)
+
+Status: On hold. I couldn't get it working. I think that the language model could not easily generalize its knowledge from language to the latent state describing images. Also, the LLM made the world model very slow, which can be a frustrating research experience, ideally, it should be faster than the simulator (which would be true in robotics, but not in games).
+
+things tried:
+- QLoRA training of LLM
+- reusing the embeddings
+- full fine tuning
+- 1.5b models (yeah pretty small, maybe no useful world model until >13B?)
+
+Future ideas:
+- try with the IRIS-delta code once it is released
+- try with a pre-trained image transformer instead of a language model (or a multimodel model e.g. [clip](https://huggingface.co/sujitpal/clip-imageclef), [Obsidian-3b](https://huggingface.co/NousResearch/Obsidian-3B-V0.5) )
+- try ViT tokenizer (that's a vision transformer)
+
+Original readme:
 
 # Transformers are Sample-Efficient World Models (IRIS)
 
