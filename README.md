@@ -1,7 +1,11 @@
 
-Fork of IRIS, where instead of a new transformer as a world model we use an adapter on a pretrained LLM. The hypothesis is that the pretrained LLM will help the world model learn faster and in a more data effecient manner.
+# IRIS-BIGVAE
 
-See also:
+This is a fork of IRIS. Instead of using a new transformer as a world model, we're employing an adapter on a pre-trained LLM.
+
+The **hypothesis** here is that the *pre-trained LLM will expedite the learning process of the world model and enhance its data efficiency*.
+
+For more information, consider checking out:
 - [AdaVAE](https://github.com/ImKeTT/AdaVAE)
 - [bigvae](https://github.com/JD-P/minihf/blob/adavae-moe/vae_infer.py)
 
@@ -17,6 +21,21 @@ details:
 - batch smaller because of my small machine
 - actor_critic.steps_per_epoch 200->20
 - world_model.batch_num_sampler; 64->8 because the forzen transformer uses lots of gpu ram
+
+Current Status: This project is on hold. The implementation didn't work as expected. The language model seemed unable to generalize its language knowledge to the latent state describing images. Moreover, the LLM slowed down the world model considerably, which can be a hindrance in research, ideally, it should be faster than the simulator (which is the case in robotics, but not in games).
+
+Approaches tried:
+- QLoRA training of LLM
+- Reusing the embeddings
+- Full fine-tuning
+- 1.5b models (which were pretty small and possibly ineffective until >13B?)
+
+Future ideas:
+- Experiment with the IRIS-delta code once it's released
+- Try a pre-trained image transformer instead of a language model (or a multimodal model e.g. [clip](https://huggingface.co/sujitpal/clip-imageclef), [Obsidian-3b](https://huggingface.co/NousResearch/Obsidian-3B-V0.5) )
+- Try ViT tokenizer (that's a vision transformer)
+
+Original readme:
 
 # Transformers are Sample-Efficient World Models (IRIS)
 
