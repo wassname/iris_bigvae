@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "test",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "autoReload": {"enable": true,},
+            "env": {"WANDB_MODE":"disabled"},
+            "args": [
+                // "'wandb.mode=disabled",
+                // "env.train.id=BreakoutNoFrameskip-v4",
+                "env.train.id=CrafterReward-v1",
+                // # make it start early
+                "training.tokenizer.start_after_epochs=1",
+                "training.world_model.start_after_epochs=2",
+                "training.actor_critic.start_after_epochs=3",
+                "training.tokenizer.steps_per_epoch=10",
+                "training.world_model.steps_per_epoch=10",
+                "training.actor_critic.steps_per_epoch=10",
+            ]
+        },
+        {
+            "name": "main",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "autoReload": {"enable": true,},
+            "args": [
+                "env.train.id=CrafterReward-v1",
+            ]
+        }
+    ]
+}

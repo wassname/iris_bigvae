@@ -8,11 +8,11 @@ import torch
 from tqdm import tqdm
 import wandb
 
-from agent import Agent
-from dataset import EpisodesDataset
-from envs import SingleProcessEnv, MultiProcessEnv
-from episode import Episode
-from utils import EpisodeDirManager, RandomHeuristic
+from src.agent import Agent
+from src.dataset import EpisodesDataset
+from src.envs import SingleProcessEnv, MultiProcessEnv
+from src.episode import Episode
+from src.utils import EpisodeDirManager, RandomHeuristic
 
 
 class Collector:

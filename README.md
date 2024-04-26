@@ -5,6 +5,19 @@ See also:
 - [AdaVAE](https://github.com/ImKeTT/AdaVAE)
 - [bigvae](https://github.com/JD-P/minihf/blob/adavae-moe/vae_infer.py)
 
+
+A fork of IRIS where I use a pretrained LLM as the tranformer (with LoRa). 
+
+My hypothesis: Pretrained LLM's make good world models by including a lot of world information!
+
+details:
+- for speed and cost I use a small 1.5B model. But it would be interesting to try a 7B one
+- for speed I use a smaller actor critic than in IRIS
+- max_blocks 20->10
+- batch smaller because of my small machine
+- actor_critic.steps_per_epoch 200->20
+- world_model.batch_num_sampler; 64->8 because the forzen transformer uses lots of gpu ram
+
 # Transformers are Sample-Efficient World Models (IRIS)
 
 [Transformers are Sample-Efficient World Models](https://openreview.net/forum?id=vhFu1Acb0xb) <br>

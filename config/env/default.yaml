@@ -1,5 +1,5 @@
 train:
-  _target_: envs.make_atari
+  _target_: src.envs.make_env
   id: null
   size: 64
   max_episode_steps: 20000

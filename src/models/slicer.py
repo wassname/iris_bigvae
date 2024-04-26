@@ -31,7 +31,8 @@ class Head(Slicer):
         self.head_module = head_module
 
     def forward(self, x: torch.Tensor, num_steps: int, prev_steps: int) -> torch.Tensor:
-        x_sliced = x[:, self.compute_slice(num_steps, prev_steps)]  # x is (B, T, E)
+        s = self.compute_slice(num_steps, prev_steps)
+        x_sliced = x[:, s]  # x is (B, T, E)
         return self.head_module(x_sliced)
 
 

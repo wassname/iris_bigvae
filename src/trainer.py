@@ -14,14 +14,15 @@ import torch.nn as nn
 from tqdm import tqdm
 import wandb
 
-from agent import Agent
-from collector import Collector
-from envs import SingleProcessEnv, MultiProcessEnv
-from episode import Episode
-from make_reconstructions import make_reconstructions_from_batch
-from models.actor_critic import ActorCritic
-from models.world_model import WorldModel
-from utils import configure_optimizer, EpisodeDirManager, set_seed
+from src.agent import Agent
+from src.collector import Collector
+from src.envs import SingleProcessEnv, MultiProcessEnv
+from src.episode import Episode
+from src.make_reconstructions import make_reconstructions_from_batch
+from src.models.actor_critic import ActorCritic
+from src.models.world_model import WorldModel
+from src.utils import configure_optimizer, EpisodeDirManager, set_seed
+from src.models.tokenizer import Tokenizer
 
 
 class Trainer:
@@ -46,6 +47,7 @@ class Trainer:
         self.reconstructions_dir = self.media_dir / 'reconstructions'
 
         if not cfg.common.resume:
+            print('cwd', Path.cwd())
             config_dir = Path('config')
             config_path = config_dir / 'trainer.yaml'
             config_dir.mkdir(exist_ok=False, parents=False)
@@ -79,8 +81,15 @@ class Trainer:
         assert self.cfg.training.should or self.cfg.evaluation.should
         env = train_env if self.cfg.training.should else test_env
 
-        tokenizer = instantiate(cfg.tokenizer)
-        world_model = WorldModel(obs_vocab_size=tokenizer.vocab_size, act_vocab_size=env.num_actions, config=instantiate(cfg.world_model))
+        world_model = WorldModel(obs_vocab_size=cfg.tokenizer.vocab_size, act_vocab_size=env.num_actions, config=instantiate(cfg.world_model))
+        transformer_embedding = world_model.transformer.embedding
+        tokenizer = Tokenizer(
+            transformer_embedding=transformer_embedding,
+            vocab_size=cfg.tokenizer.vocab_size,
+            embed_dim=cfg.tokenizer.embed_dim,
+            encoder=instantiate(cfg.tokenizer.encoder),
+            decoder=instantiate(cfg.tokenizer.decoder),
+        )
         actor_critic = ActorCritic(**cfg.actor_critic, act_vocab_size=env.num_actions)
         self.agent = Agent(tokenizer, world_model, actor_critic).to(self.device)
         print(f'{sum(p.numel() for p in self.agent.tokenizer.parameters())} parameters in agent.tokenizer')
@@ -88,7 +97,11 @@ class Trainer:
         print(f'{sum(p.numel() for p in self.agent.actor_critic.parameters())} parameters in agent.actor_critic')
 
         self.optimizer_tokenizer = torch.optim.Adam(self.agent.tokenizer.parameters(), lr=cfg.training.learning_rate)
-        self.optimizer_world_model = configure_optimizer(self.agent.world_model, cfg.training.learning_rate, cfg.training.world_model.weight_decay)
+        # self.optimizer_world_model = configure_optimizer([self.agent.tokenizer, self.agent.world_model], cfg.training.learning_rate, cfg.training.world_model.weight_decay)
+        self.optimizer_world_model = torch.optim.Adam(
+            list(self.agent.tokenizer.parameters())+list(self.agent.world_model.parameters()),
+            lr=cfg.training.learning_rate
+        )
         self.optimizer_actor_critic = torch.optim.Adam(self.agent.actor_critic.parameters(), lr=cfg.training.learning_rate)
 
         if cfg.initialization.path_to_checkpoint is not None:
@@ -136,10 +149,10 @@ class Trainer:
 
         if epoch > cfg_tokenizer.start_after_epochs:
             metrics_tokenizer = self.train_component(self.agent.tokenizer, self.optimizer_tokenizer, sequence_length=1, sample_from_start=True, **cfg_tokenizer)
-        self.agent.tokenizer.eval()
 
         if epoch > cfg_world_model.start_after_epochs:
             metrics_world_model = self.train_component(self.agent.world_model, self.optimizer_world_model, sequence_length=self.cfg.common.sequence_length, sample_from_start=True, tokenizer=self.agent.tokenizer, **cfg_world_model)
+        self.agent.tokenizer.eval()
         self.agent.world_model.eval()
 
         if epoch > cfg_actor_critic.start_after_epochs:
@@ -169,6 +182,7 @@ class Trainer:
             if max_grad_norm is not None:
                 torch.nn.utils.clip_grad_norm_(component.parameters(), max_grad_norm)
 
+ 
             optimizer.step()
 
         metrics = {f'{str(component)}/train/total_loss': loss_total_epoch, **intermediate_losses}
@@ -190,7 +204,7 @@ class Trainer:
         if epoch > cfg_world_model.start_after_epochs:
             metrics_world_model = self.eval_component(self.agent.world_model, cfg_world_model.batch_num_samples, sequence_length=self.cfg.common.sequence_length, tokenizer=self.agent.tokenizer)
 
-        if epoch > cfg_actor_critic.start_after_epochs:
+        if epoch > cfg_world_model.start_after_epochs:
             self.inspect_imagination(epoch)
 
         if cfg_tokenizer.save_reconstructions:

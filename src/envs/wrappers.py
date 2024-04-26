@@ -7,11 +7,22 @@ from typing import Tuple
 import gym
 import numpy as np
 from PIL import Image
+import crafter
+
+
+def make_env(id, size=64, max_episode_steps=None, noop_max=30, frame_skip=4, done_on_life_loss=False, clip_reward=False):
+    if id.startswith('Crafter'):
+        return make_crafter(id, size=size, max_episode_steps=max_episode_steps, done_on_life_loss=done_on_life_loss)
+    if id.startswith('MiniHack'):
+        return make_minihack(size=size, max_episode_steps=max_episode_steps, done_on_life_loss=done_on_life_loss)
+    else:
+        return make_atari(id, size, max_episode_steps, noop_max, frame_skip, done_on_life_loss, clip_reward)
 
 
 def make_atari(id, size=64, max_episode_steps=None, noop_max=30, frame_skip=4, done_on_life_loss=False, clip_reward=False):
     env = gym.make(id)
-    assert 'NoFrameskip' in env.spec.id or 'Frameskip' not in env.spec
+    print(env.spec)
+    assert 'NoFrameskip' in env.spec.id or 'Frameskip' not in str(env.spec)
     env = ResizeObsWrapper(env, (size, size))
     if clip_reward:
         env = RewardClippingWrapper(env)
@@ -22,6 +33,26 @@ def make_atari(id, size=64, max_episode_steps=None, noop_max=30, frame_skip=4, d
     env = MaxAndSkipEnv(env, skip=frame_skip)
     if done_on_life_loss:
         env = EpisodicLifeEnv(env)
+    return env
+
+def make_crafter(id, size=64, max_episode_steps=None, done_on_life_loss=False):
+    # https://github.com/danijar/dreamerv2/blob/07d906e9c4322c6fc2cd6ed23e247ccd6b7c8c41/dreamerv2/common/envs.py#L242
+    # https://github.com/footoredo/torchbeast/blob/12939569cc46b6a8616e4c25b138d97248cc8581/torchbeast/atari_wrappers.py#L301
+    env = gym.make(id)
+    env = ResizeObsWrapper(env, (size, size))
+    return env
+
+
+def make_minihack(id, size=64, max_episode_steps=None, noop_max=30, frame_skip=4, done_on_life_loss=False, clip_reward=False):
+    # https://github.com/facebookresearch/minihack/blob/47065748f04714c49ba5b52fb74d166228c7acc1/minihack/agent/common/envs/wrapper.py#L117
+    # https://github.com/roger-creus/SOFE/blob/5551a115a9c7e1d632cf6996bf5dcabde59cdcc5/e3b/minihack/torchbeast/src/utils.py#L110
+    env = gym.make(id,
+                   # https://minihack.readthedocs.io/en/latest/getting-started/observation_spaces.html
+                   observation_keys=("pixel_crop"),
+                #    obs_crop_h=9,
+                #    obs_crop_w=9,
+                    )
+    env = ResizeObsWrapper(env, (size, size))
     return env
 
 
@@ -64,7 +95,7 @@ class NoopResetEnv(gym.Wrapper):
         if self.override_num_noops is not None:
             noops = self.override_num_noops
         else:
-            noops = self.unwrapped.np_random.randint(1, self.noop_max + 1)
+            noops = self.unwrapped.np_random.integers(1, self.noop_max + 1)
         assert noops > 0
         obs = None
         for _ in range(noops):

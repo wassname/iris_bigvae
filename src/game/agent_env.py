@@ -4,14 +4,14 @@ from PIL import Image
 import torch
 from torchvision.transforms.functional import InterpolationMode, resize
 
-from agent import Agent
-from envs import SingleProcessEnv, WorldModelEnv
-from game.keymap import get_keymap_and_action_names
+from src.agent import Agent
+from src.envs import SingleProcessEnv, WorldModelEnv
+from src.game.keymap import get_keymap_and_action_names
 
 
 class AgentEnv:
     def __init__(self, agent: Agent, env: SingleProcessEnv, keymap_name: str, do_reconstruction: bool) -> None:
-        assert isinstance(env, SingleProcessEnv) or isinstance(env, WorldModelEnv)
+        assert isinstance(env, SingleProcessEnv) or isinstance(env, WorldModelEnv), f"{env}"
         self.agent = agent
         self.env = env
         _, self.action_names = get_keymap_and_action_names(keymap_name)

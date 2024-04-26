@@ -12,6 +12,10 @@ def get_keymap_and_action_names(name):
 
     if name == 'atari':
         return ATARI_KEYMAP, ATARI_ACTION_NAMES
+    
+    if name == 'atari/CrafterReward-v1':
+        env_id = name.split('atari/')[1]
+        return CRAFTER_KEYMAP, gym.make(env_id).action_names 
 
     assert name.startswith('atari/')
     env_id = name.split('atari/')[1]
@@ -100,4 +104,25 @@ EMPTY_ACTION_NAMES = [
 ]
 
 EMPTY_KEYMAP = {
+}
+
+CRAFTER_KEYMAP = {
+    pygame.K_a: 1,
+    pygame.K_d: 2,
+    pygame.K_w: 3,
+    pygame.K_s: 4,
+    pygame.K_SPACE: 5,
+    pygame.K_TAB: 6,
+
+    pygame.K_r: 7,
+    pygame.K_t: 8,
+    pygame.K_f: 9,
+    pygame.K_p: 10,
+
+    pygame.K_1: 11,
+    pygame.K_2: 12,
+    pygame.K_3: 13,
+    pygame.K_4: 14,
+    pygame.K_5: 15,
+    pygame.K_6: 16,
 }

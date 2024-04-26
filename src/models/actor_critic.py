@@ -10,11 +10,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from dataset import Batch
-from envs.world_model_env import WorldModelEnv
-from models.tokenizer import Tokenizer
-from models.world_model import WorldModel
-from utils import compute_lambda_returns, LossWithIntermediateLosses
+from src.dataset import Batch
+from src.envs.world_model_env import WorldModelEnv
+from src.models.tokenizer import Tokenizer
+from src.models.world_model import WorldModel
+from src.utils import compute_lambda_returns, LossWithIntermediateLosses
 
 
 @dataclass
@@ -34,24 +34,26 @@ class ImagineOutput:
 
 
 class ActorCritic(nn.Module):
-    def __init__(self, act_vocab_size, use_original_obs: bool = False) -> None:
+    def __init__(self, act_vocab_size, use_original_obs: bool = False, lstm_dim = 16) -> None:
         super().__init__()
+        shrink = 1
+        s = 1
         self.use_original_obs = use_original_obs
-        self.conv1 = nn.Conv2d(3, 32, 3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(3, 32//s, 3, stride=1, padding=1)
         self.maxp1 = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(32, 32, 3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(32//s, 32//s, 3, stride=1, padding=1)
         self.maxp2 = nn.MaxPool2d(2, 2)
-        self.conv3 = nn.Conv2d(32, 64, 3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(32//s, 64//s, 3, stride=1, padding=1)
         self.maxp3 = nn.MaxPool2d(2, 2)
-        self.conv4 = nn.Conv2d(64, 64, 3, stride=1, padding=1)
+        self.conv4 = nn.Conv2d(64//s, 64//shrink, 3, stride=1, padding=1)
         self.maxp4 = nn.MaxPool2d(2, 2)
 
-        self.lstm_dim = 512
-        self.lstm = nn.LSTMCell(1024, self.lstm_dim)
+        self.lstm_dim = lstm_dim
+        self.lstm = nn.LSTMCell(1024//shrink, self.lstm_dim)
         self.hx, self.cx = None, None
 
-        self.critic_linear = nn.Linear(512, 1)
-        self.actor_linear = nn.Linear(512, act_vocab_size)
+        self.critic_linear = nn.Linear(self.lstm_dim, 1)
+        self.actor_linear = nn.Linear(self.lstm_dim, act_vocab_size)
 
     def __repr__(self) -> str:
         return "actor_critic"
@@ -85,7 +87,7 @@ class ActorCritic(nn.Module):
         x = F.relu(self.maxp2(self.conv2(x)))
         x = F.relu(self.maxp3(self.conv3(x)))
         x = F.relu(self.maxp4(self.conv4(x)))
-        x = torch.flatten(x, start_dim=1)
+        x = torch.flatten(x, start_dim=1) # [b=32, 64//shrink, 4, 4]
 
         if mask_padding is None:
             self.hx, self.cx = self.lstm(x, (self.hx, self.cx))
@@ -146,6 +148,8 @@ class ActorCritic(nn.Module):
 
             outputs_ac = self(obs)
             action_token = Categorical(logits=outputs_ac.logits_actions).sample()
+            
+            # FIXME shouldn't we pass in obs too?            
             obs, reward, done, _ = wm_env.step(action_token, should_predict_next_obs=(k < horizon - 1))
 
             all_actions.append(action_token)

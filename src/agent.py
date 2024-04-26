@@ -4,10 +4,10 @@ import torch
 from torch.distributions.categorical import Categorical
 import torch.nn as nn
 
-from models.actor_critic import ActorCritic
-from models.tokenizer import Tokenizer
-from models.world_model import WorldModel
-from utils import extract_state_dict
+from src.models.actor_critic import ActorCritic
+from src.models.tokenizer import Tokenizer
+from src.models.world_model import WorldModel
+from src.utils import extract_state_dict
 
 
 class Agent(nn.Module):
@@ -34,4 +34,5 @@ class Agent(nn.Module):
         input_ac = obs if self.actor_critic.use_original_obs else torch.clamp(self.tokenizer.encode_decode(obs, should_preprocess=True, should_postprocess=True), 0, 1)
         logits_actions = self.actor_critic(input_ac).logits_actions[:, -1] / temperature
         act_token = Categorical(logits=logits_actions).sample() if should_sample else logits_actions.argmax(dim=-1)
+        # FIXME, is this really just an action and doesn't have an obs in?
         return act_token

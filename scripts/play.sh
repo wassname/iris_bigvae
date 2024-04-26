@@ -14,22 +14,23 @@ while [ "$1" != "" ]; do
             ;;
         -h | --header )
             header=1
-            ;;
+            ;; # adds banner with env metadata like action
         -r | --reconstruction )
             reconstruction=1
-            ;;
+            ;; # 3 panes [original_obs, resized_obs, reconstructed], doesn't do anything if any of -w -a or -e are set. shows quality of encoder decoder
         -s | --save-mode )
             save_mode=1
-            ;;
+            ;; # lets you save the episode to mp4
         -a | --agent-world-model )
             mode="agent_in_world_model"
-            ;;
+            ;; # the agent plays in the world model env, shows the quality of the dynamics model
         -e | --episode )
             mode="episode_replay"
-            ;;
+            ;; # replay train, test, or imagined episodes. shows quality of dynamics model
+            # this is quick low resource way to check the dynamics model and agent while training
         -w | --world-model )
             mode="play_in_world_model"
-            ;;
+            ;; # human plays in world model
         * )
             echo Invalid usage : $1
             exit 1

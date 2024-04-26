@@ -3,47 +3,64 @@ import cv2
 from pathlib import Path
 import random
 import shutil
-
+from loguru import logger
 import numpy as np
 import torch
 import torch.nn as nn
 
-from episode import Episode
+from src.episode import Episode
+
+from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
 
 
-def configure_optimizer(model, learning_rate, weight_decay, *blacklist_module_names):
+def configure_optimizer(models, learning_rate, weight_decay, *blacklist_module_names):
     """Credits to https://github.com/karpathy/minGPT"""
+    # FIXME: check this is still good for LoRA
     # separate out all parameters to those that will and won't experience regularizing weight decay
     decay = set()
     no_decay = set()
+    decay_params = []
+    no_decay_params = []
+    param_dict = {}
     whitelist_weight_modules = (torch.nn.Linear, torch.nn.Conv1d)
-    blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
-    for mn, m in model.named_modules():
-        for pn, p in m.named_parameters():
-            fpn = '%s.%s' % (mn, pn) if mn else pn  # full param name
-            if any([fpn.startswith(module_name) for module_name in blacklist_module_names]):
-                no_decay.add(fpn)
-            elif 'bias' in pn:
-                # all biases will not be decayed
-                no_decay.add(fpn)
-            elif pn.endswith('weight') and isinstance(m, whitelist_weight_modules):
-                # weights of whitelist modules will be weight decayed
-                decay.add(fpn)
-            elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
-                # weights of blacklist modules will NOT be weight decayed
-                no_decay.add(fpn)
+    blacklist_weight_modules = tuple(ALL_LAYERNORM_LAYERS+[torch.nn.Embedding])
+    for model in models:
+        for mn, m in model.named_modules():
+            for pn, p in m.named_parameters():
+                fpn = '%s.%s' % (mn, pn) if mn else pn  # full param name
+                if any([fpn.startswith(module_name) for module_name in blacklist_module_names]):
+                    no_decay.add(fpn)
+                    no_decay_params.append(p)
+                elif 'bias' in pn:
+                    # all biases will not be decayed
+                    no_decay.add(fpn)
+                    no_decay_params.append(p)
+                elif pn.endswith('weight') and isinstance(m, whitelist_weight_modules):
+                    # weights of whitelist modules will be weight decayed
+                    decay.add(fpn)
+                    decay_params.append(p)
+                elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
+                    # weights of blacklist modules will NOT be weight decayed
+                    no_decay.add(fpn)
+                    no_decay_params.append(p)
+                else:
+                    logger.warning(f"Parameter {fpn} of module {mn} not handled!")
+                    # raise NotImplementedError(f"Parameter {fpn} of module {m} not handled!")
+                    decay.add(fpn)
+                    decay_params.append(p)
 
-    # validate that we considered every parameter
-    param_dict = {pn: p for pn, p in model.named_parameters()}
+        # validate that we considered every parameter
+        param_dict.update({pn: p for pn, p in model.named_parameters()})
     inter_params = decay & no_decay
     union_params = decay | no_decay
+    # logger.debug(f"decay {decay} no_decay {no_decay}")
     assert len(inter_params) == 0, f"parameters {str(inter_params)} made it into both decay/no_decay sets!"
     assert len(param_dict.keys() - union_params) == 0, f"parameters {str(param_dict.keys() - union_params)} were not separated into either decay/no_decay set!"
 
     # create the pytorch optimizer object
     optim_groups = [
-        {"params": [param_dict[pn] for pn in sorted(list(decay))], "weight_decay": weight_decay},
-        {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
+        {"params": no_decay_params, "weight_decay": weight_decay},
+        {"params": decay_params, "weight_decay": 0.0},
     ]
     optimizer = torch.optim.AdamW(optim_groups, lr=learning_rate)
     return optimizer

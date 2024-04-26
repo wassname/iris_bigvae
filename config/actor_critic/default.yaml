@@ -1,1 +1,2 @@
 use_original_obs: False
+lstm_dim: 512
