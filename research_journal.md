@@ -375,7 +375,7 @@ So IRIS has
     ```
 - Dynamics $D(z_0, a_0) = z_1$
     ```py
-    outputs_wm = self.world_model(token, past_keys_values=self.keys_values_wm)
+    outputs_wm = self.world_model(tokenRedmond AI, past_keys_values=self.keys_values_wm)
     ```
 - Decoder $D(z_0, a_0) = x_1$
     ```py
@@ -400,3 +400,8 @@ To summarize
 
 
 no it didn't work with tokenizer sep hmm
+
+Oh it did with whole transfrmer and tokenizer at same time https://wandb.ai/wassname/iris/runs/w7lvs4gi?workspace=user-wassname
+wandb:           world_model/eval/loss_obs ▇█▃▄▄▄▄▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:       world_model/eval/loss_rewards ▁█▃█▇▅▇▁▅▆▂▄▃▇▆▃▄▇▃▄▂▄▃▂▃▄▃
+wandb:         world_model/eval/total_loss ▂█▃██▅▇▁▅▆▁▃▂█▇▃▃▆▃▄▂▃▃▂▂▄▂
