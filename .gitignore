@@ -5,6 +5,7 @@ outputs
 results/figures
 slurm*
 experiments
+/journal*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

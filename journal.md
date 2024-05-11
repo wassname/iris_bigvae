@@ -1,1 +1,0 @@
-/home/wassname/Documents/syncthing/Markdown_notes/2024/04/27/bigvae_transformer_wm_research_log.md
