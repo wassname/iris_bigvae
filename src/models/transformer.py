@@ -12,7 +12,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 from loguru import logger
 
-# from .kv_caching import KeysValues, KVCache
+from .kv_caching import KeysValues, KVCache
 
 
 @dataclass

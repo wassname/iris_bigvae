@@ -12,6 +12,7 @@ from src.models.slicer import Embedder, Head
 from src.models.tokenizer import Tokenizer
 from src.models.transformer import Transformer, TransformerConfig
 from src.utils import init_weights, LossWithIntermediateLosses
+from src.models.bigvae import BigVAEConfig
 
 
 @dataclass

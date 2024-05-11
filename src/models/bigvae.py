@@ -21,7 +21,7 @@ import sys
 import zipfile
 
 import accelerate
-from datasets import load_dataset
+# from datasets import load_dataset
 import peft
 import safetensors.torch as safetorch
 import torch
@@ -347,11 +347,6 @@ def batched(iterable, n):
 
 @dataclass
 class BigVAEConfig:
-    model_name: str = "stabilityai/stablelm-3b-4e1t"
-    dropout: float = 0
-    rank: int = 32
-    z_dim: int = 768
-    start_from: str = None
     
     tokens_per_block: int
     max_blocks: int
@@ -364,6 +359,12 @@ class BigVAEConfig:
     embed_pdrop: float
     resid_pdrop: float
     attn_pdrop: float
+    
+    model_name: str = "stabilityai/stablelm-3b-4e1t"
+    dropout: float = 0
+    rank: int = 32
+    z_dim: int = 768
+    start_from: str = None
 
     @property
     def max_tokens(self):

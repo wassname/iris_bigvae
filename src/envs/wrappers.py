@@ -6,18 +6,66 @@ from typing import Tuple
 
 import gym
 import numpy as np
+import jax
 from PIL import Image
 import crafter
+from craftax.craftax_env import make_craftax_env_from_name
+from craftax.craftax.play_craftax import CraftaxRenderer
 
 
 def make_env(id, size=64, max_episode_steps=None, noop_max=30, frame_skip=4, done_on_life_loss=False, clip_reward=False):
+    if id.startswith('Craftax'):
+        return make_craftax(id)
     if id.startswith('Crafter'):
         return make_crafter(id, size=size, max_episode_steps=max_episode_steps, done_on_life_loss=done_on_life_loss)
     if id.startswith('MiniHack'):
         return make_minihack(size=size, max_episode_steps=max_episode_steps, done_on_life_loss=done_on_life_loss)
     else:
         return make_atari(id, size, max_episode_steps, noop_max, frame_skip, done_on_life_loss, clip_reward)
+    
+class Gymax2GymWrapper(gym.ObservationWrapper):
+    def __init__(self, env) -> None:
+        gym.Wrapper.__init__(self, env)
+        self.env_params = env.default_params
+        rng = jax.random.PRNGKey(0)
+        rng, _rng = jax.random.split(rng)
+        self.rngs = jax.random.split(_rng, 3)
+        self.do_render = True
+        if self.do_render:
+            self.renderer = CraftaxRenderer(self.env, self.env_params, pixel_render_size=1)
 
+    def step(self, action):
+        obs, state, reward, done, info = self.env.step(self.rngs[2], self.env_state, action, self.env_params)
+        self.env_state = state
+        if self.do_render:
+            self.renderer.update()
+        return obs, reward, done, info
+
+    @property
+    def action_space(self):
+        return self.env.action_space(self.env_params)
+    
+    @property
+    def observation_space(self):
+        return self.env.observation_space(self.env_params)
+    
+    def reset(self):
+        obs, state = self.env.reset(self.rngs[0], self.env_params)
+        self.env_state = state
+        if self.do_render:
+            self.renderer.update()
+        return obs
+    
+    def render(self):
+        self.renderer.render(self.env_state)
+
+
+def make_craftax(id, size=64, max_episode_steps=None, done_on_life_loss=False):
+    env =  make_craftax_env_from_name(id)
+    env = Gymax2GymWrapper(env) # # (130, 110, 3) or (9, 11, 83)
+    # if 'pixel' in id:
+        # env = ResizeObsWrapper(env, (size, size))
+    return env
 
 def make_atari(id, size=64, max_episode_steps=None, noop_max=30, frame_skip=4, done_on_life_loss=False, clip_reward=False):
     env = gym.make(id)
@@ -38,7 +86,7 @@ def make_atari(id, size=64, max_episode_steps=None, noop_max=30, frame_skip=4, d
 def make_crafter(id, size=64, max_episode_steps=None, done_on_life_loss=False):
     # https://github.com/danijar/dreamerv2/blob/07d906e9c4322c6fc2cd6ed23e247ccd6b7c8c41/dreamerv2/common/envs.py#L242
     # https://github.com/footoredo/torchbeast/blob/12939569cc46b6a8616e4c25b138d97248cc8581/torchbeast/atari_wrappers.py#L301
-    env = gym.make(id)
+    env = gym.make(id) 
     env = ResizeObsWrapper(env, (size, size))
     return env
 
